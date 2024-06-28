@@ -1,6 +1,7 @@
 use crate::grid::{Grid, CellCandidate};
 use super::StrategyResult;
 
+
 pub fn find_naked_singles(grid: &Grid) -> Option<StrategyResult> {
     let mut singles = vec![];
 
@@ -20,6 +21,7 @@ pub fn find_naked_singles(grid: &Grid) -> Option<StrategyResult> {
         Some(StrategyResult::from(singles, vec![]))
     }
 }
+
 
 #[cfg(test)]
 mod tests {

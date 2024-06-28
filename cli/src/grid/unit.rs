@@ -4,3 +4,8 @@ pub enum UnitType {
     MiniGrid,
 }
 
+pub enum Unit {
+    Row(u32),
+    Col(u32),
+    MiniGrid(u32),
+}

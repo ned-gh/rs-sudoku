@@ -28,6 +28,7 @@ pub fn find_hidden_singles(grid: &Grid) -> Option<StrategyResult> {
     }
 }
 
+
 #[cfg(test)]
 mod tests {
     use super::*;
