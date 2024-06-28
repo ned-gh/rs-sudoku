@@ -1,6 +1,7 @@
 mod grid;
 mod solver;
 mod strategy;
+mod util;
 
 use grid::Grid;
 

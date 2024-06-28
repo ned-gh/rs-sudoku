@@ -1,4 +1,4 @@
-use crate::grid::{Grid, cell::CellCandidate};
+use crate::grid::{Grid, CellCandidate};
 
 pub fn find_naked_single(grid: &Grid) -> Option<Vec<CellCandidate>> {
     let mut singles = vec![];
@@ -8,9 +8,7 @@ pub fn find_naked_single(grid: &Grid) -> Option<Vec<CellCandidate>> {
             let candidates = grid.get_candidates(r, c);
 
             if candidates.len() == 1 {
-                if let Some(val) = candidates.iter().next().cloned() {
-                    singles.push(CellCandidate::new(r, c, val));
-                }
+                singles.push(CellCandidate::from(r, c, candidates.get_smallest()));
             }
         }
     }
