@@ -5,7 +5,7 @@ use crate::grid::{Grid, CellCandidate, UnitType};
 use UnitType::{Row, Col, MiniGrid};
 
 
-pub fn find_hidden_single(grid: &Grid) -> Option<Vec<CellCandidate>> {
+pub fn find_hidden_singles(grid: &Grid) -> Option<Vec<CellCandidate>> {
     let mut singles = HashSet::new();
 
     for val in 1..10 {
@@ -24,5 +24,27 @@ pub fn find_hidden_single(grid: &Grid) -> Option<Vec<CellCandidate>> {
         None
     } else {
         Some(singles.into_iter().collect())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_hidden_singles() {
+        let bd = "000000000904607000076804100309701080008000300050308702007502610000403208000000000";
+        let grid = Grid::from_str(bd).unwrap();
+
+        let mut expected = vec![
+            CellCandidate::from(4, 8, 1),
+            CellCandidate::from(4, 0, 7),
+        ];
+        expected.sort();
+
+        let mut result = find_hidden_singles(&grid).unwrap();
+        result.sort();
+
+        assert_eq!(expected, result);
     }
 }
