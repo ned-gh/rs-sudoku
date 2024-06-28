@@ -26,7 +26,7 @@ pub fn find_pointing_sets(grid: &Grid) -> Option<StrategyResult> {
             .difference(&cells)
             .scan(val);
 
-            if other.len() == 0 {
+            if other.is_empty() {
                 continue;
             }
 

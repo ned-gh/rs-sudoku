@@ -10,6 +10,10 @@ impl BitSet {
         self.0 |= (1 << val) as u16;
     }
 
+    pub fn remove(&mut self, val: u32) {
+        self.0 &= !(1 << val) as u16;
+    }
+
     pub fn len(&self) -> u32 {
         let mut len = 0;
         let mut bitset = self.0;

@@ -39,17 +39,51 @@ impl Region {
         let (row_span, col_span) = self.span();
 
         if row_span.len() == 1 {
-            Some(Unit::Row(row_span.get_smallest()))
+            Some(Unit::Row(*row_span.iter().next().unwrap()))
         } else if col_span.len() == 1 {
-            Some(Unit::Col(col_span.get_smallest()))
+            Some(Unit::Col(*col_span.iter().next().unwrap()))
         } else {
             None
         }
     }
 
-    fn span(&self) -> (BitSet, BitSet) {
-        let mut row_span = BitSet::new();
-        let mut col_span = BitSet::new();
+    pub fn all_in_minigrid(&self) -> Option<Unit> {
+        let mut min_cr = 8;
+        let mut min_cc = 8;
+        let mut max_cr = 0;
+        let mut max_cc = 0;
+
+        for cell in self.iter() {
+            let cr = cell.get_row() / 3;
+            let cc = cell.get_col() / 3;
+
+            if cr < min_cr {
+                min_cr = cr;
+            }
+
+            if cc < min_cc {
+                min_cc = cc;
+            }
+
+            if cr > max_cr {
+                max_cr = cr;
+            }
+
+            if cc > max_cc {
+                max_cc = cc;
+            }
+        }
+
+        if min_cr != max_cr || min_cc != max_cc {
+            None
+        } else {
+            Some(Unit::MiniGrid(min_cr * 3 + min_cc))
+        }
+    }
+
+    fn span(&self) -> (HashSet<u32>, HashSet<u32>) {
+        let mut row_span = HashSet::new();
+        let mut col_span = HashSet::new();
 
         for cell in self.iter() {
             row_span.insert(cell.get_row());

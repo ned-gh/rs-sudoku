@@ -144,7 +144,11 @@ impl Grid {
     }
 
     pub fn get_candidates(&self, row: u32, col: u32) -> &BitSet {
-        self.candidates.get(index(row, col)).unwrap()
+        &self.candidates[index(row, col)]
+    }
+
+    pub fn clear_candidate(&mut self, row: u32, col: u32, val: u32) {
+        self.candidates[index(row, col)].remove(val);
     }
 }
 
