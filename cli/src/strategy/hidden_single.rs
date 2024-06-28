@@ -1,11 +1,12 @@
 use std::collections::HashSet;
 
 use crate::grid::{Grid, CellCandidate, UnitType};
+use super::StrategyResult;
 
 use UnitType::{Row, Col, MiniGrid};
 
 
-pub fn find_hidden_singles(grid: &Grid) -> Option<Vec<CellCandidate>> {
+pub fn find_hidden_singles(grid: &Grid) -> Option<StrategyResult> {
     let mut singles = HashSet::new();
 
     for val in 1..10 {
@@ -23,7 +24,7 @@ pub fn find_hidden_singles(grid: &Grid) -> Option<Vec<CellCandidate>> {
     if singles.is_empty() {
         None
     } else {
-        Some(singles.into_iter().collect())
+        Some(StrategyResult::from(singles.into_iter().collect(), vec![]))
     }
 }
 
@@ -42,9 +43,14 @@ mod tests {
         ];
         expected.sort();
 
-        let mut result = find_hidden_singles(&grid).unwrap();
-        result.sort();
+        let result = find_hidden_singles(&grid).unwrap();
+        let mut to_place = result.get_to_place().clone();
+        let mut to_eliminate = result.get_to_eliminate().clone();
 
-        assert_eq!(expected, result);
+        to_place.sort();
+        to_eliminate.sort();
+
+        assert_eq!(expected, to_place);
+        assert_eq!(Vec::<CellCandidate>::new(), to_eliminate);
     }
 }

@@ -1,6 +1,7 @@
 use crate::grid::{Grid, CellCandidate};
+use super::StrategyResult;
 
-pub fn find_naked_singles(grid: &Grid) -> Option<Vec<CellCandidate>> {
+pub fn find_naked_singles(grid: &Grid) -> Option<StrategyResult> {
     let mut singles = vec![];
 
     for r in 0..9 {
@@ -16,7 +17,7 @@ pub fn find_naked_singles(grid: &Grid) -> Option<Vec<CellCandidate>> {
     if singles.is_empty() {
         None
     } else {
-        Some(singles)
+        Some(StrategyResult::from(singles, vec![]))
     }
 }
 
@@ -29,10 +30,15 @@ mod tests {
         let bd = "000000000904607000076804100309701080008000300050308702007502610000403208000000000";
         let grid = Grid::from_str(bd).unwrap();
 
-        let expected = Some(vec![
+        let expected = vec![
             CellCandidate::from(5, 2, 1),
-        ]);
+        ];
 
-        assert_eq!(expected, find_naked_singles(&grid));
+        let result = find_naked_singles(&grid).unwrap();
+        let to_place = result.get_to_place().clone();
+        let to_eliminate = result.get_to_eliminate().clone();
+
+        assert_eq!(expected, to_place);
+        assert_eq!(Vec::<CellCandidate>::new(), to_eliminate);
     }
 }

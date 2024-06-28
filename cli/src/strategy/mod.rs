@@ -1,5 +1,10 @@
+mod strategy_result;
 mod hidden_single;
 mod naked_single;
+mod pointing_set;
 
-pub use hidden_single::find_hidden_singles;
-pub use naked_single::find_naked_singles;
+pub use strategy_result::*;
+pub use hidden_single::*;
+pub use naked_single::*;
+pub use pointing_set::*;
+
