@@ -38,13 +38,6 @@ impl Grid {
         Ok(grid)
     }
 
-    fn get_placed(&self, row: u32, col: u32) -> Option<u32> {
-        match self.placed[index(row, col)] {
-            0 => None,
-            n => Some(n),
-        }
-    }
-
     fn get_placed_in_row(&self, row: u32) -> Vec<u32> {
         let mut nums = vec![];
 
@@ -116,12 +109,18 @@ impl Grid {
         match unit_type {
             UnitType::Row => {
                 for c in 0..9 {
+                    if self.placed[index(num, c)] != 0 {
+                        continue;
+                    }
                     region.insert(Cell::from(num, c, &self.candidates[index(num, c)]));
                 }
             }
 
             UnitType::Col => {
                 for r in 0..9 {
+                    if self.placed[index(r, num)] != 0 {
+                        continue;
+                    }
                     region.insert(Cell::from(r, num, &self.candidates[index(r, num)]));
                 }
             }
@@ -133,6 +132,10 @@ impl Grid {
                     for c in 0..3 {
                         let row = cr + r;
                         let col = cc + c;
+
+                        if self.placed[index(row, col)] != 0 {
+                            continue;
+                        }
 
                         region.insert(Cell::from(row, col, &self.candidates[index(row, col)]));
                     }

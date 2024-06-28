@@ -1,4 +1,6 @@
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+use std::fmt;
+
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct BitSet(u16);
 
 impl BitSet {
@@ -54,6 +56,10 @@ impl BitSet {
         BitSet(self.0 & !other.0)
     }
 
+    pub fn extend(&mut self, other: &BitSet) {
+        self.0 |= other.0;
+    }
+
     pub fn iter(&self) -> BitSetIterator {
         BitSetIterator {
             bitset: self.0,
@@ -86,5 +92,19 @@ impl Iterator for BitSetIterator {
         self.pop_count += 1;
 
         Some(res)
+    }
+}
+
+impl fmt::Debug for BitSet {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut contents = vec![];
+
+        for i in 1..10 {
+            if self.contains(i) {
+                contents.push(i);
+            }
+        }
+
+        write!(f, "BitSet {:?}", contents)
     }
 }

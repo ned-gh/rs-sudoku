@@ -15,6 +15,13 @@ impl Region {
         }
     }
 
+    pub fn from_vec(values_vec: &Vec<Cell>) -> Region {
+        let mut values = HashSet::new();
+        values.extend(values_vec.iter().cloned());
+
+        Region { values }
+    }
+
     pub fn len(&self) -> u32 {
         self.values.len() as u32
     }
