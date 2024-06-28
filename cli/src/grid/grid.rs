@@ -1,8 +1,7 @@
-use crate::util::BitSet;
 use super::Cell;
 use super::Region;
 use super::UnitType;
-
+use crate::util::BitSet;
 
 pub struct Grid {
     placed: Vec<u32>,
@@ -30,7 +29,10 @@ impl Grid {
             }
         }
 
-        let mut grid = Grid { placed, candidates: vec![] };
+        let mut grid = Grid {
+            placed,
+            candidates: vec![],
+        };
         grid.autofill();
 
         Ok(grid)
@@ -116,13 +118,13 @@ impl Grid {
                 for c in 0..9 {
                     region.insert(Cell::from(num, c, &self.candidates[index(num, c)]));
                 }
-            },
+            }
 
             UnitType::Col => {
                 for r in 0..9 {
                     region.insert(Cell::from(r, num, &self.candidates[index(r, num)]));
                 }
-            },
+            }
 
             UnitType::MiniGrid => {
                 let (cr, cc) = minigrid_corners(num);

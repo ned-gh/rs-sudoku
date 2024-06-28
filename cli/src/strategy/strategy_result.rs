@@ -1,6 +1,5 @@
 use crate::grid::CellCandidate;
 
-
 #[derive(Debug)]
 pub struct StrategyResult {
     to_place: Vec<CellCandidate>,
@@ -9,7 +8,10 @@ pub struct StrategyResult {
 
 impl StrategyResult {
     pub fn from(to_place: Vec<CellCandidate>, to_eliminate: Vec<CellCandidate>) -> StrategyResult {
-        StrategyResult { to_place, to_eliminate }
+        StrategyResult {
+            to_place,
+            to_eliminate,
+        }
     }
 
     pub fn get_to_place(&self) -> &Vec<CellCandidate> {

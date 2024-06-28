@@ -1,10 +1,9 @@
 use std::collections::HashSet;
 
-use crate::grid::{Grid, CellCandidate, UnitType};
 use super::StrategyResult;
+use crate::grid::{CellCandidate, Grid, UnitType};
 
-use UnitType::{Row, Col, MiniGrid};
-
+use UnitType::{Col, MiniGrid, Row};
 
 pub fn find_hidden_singles(grid: &Grid) -> Option<StrategyResult> {
     let mut singles = HashSet::new();
@@ -28,20 +27,17 @@ pub fn find_hidden_singles(grid: &Grid) -> Option<StrategyResult> {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn test_hidden_singles() {
-        let bd = "000000000904607000076804100309701080008000300050308702007502610000403208000000000";
+        let bd =
+            "000000000904607000076804100309701080008000300050308702007502610000403208000000000";
         let grid = Grid::from_str(bd).unwrap();
 
-        let mut expected = vec![
-            CellCandidate::from(4, 8, 1),
-            CellCandidate::from(4, 0, 7),
-        ];
+        let mut expected = vec![CellCandidate::from(4, 8, 1), CellCandidate::from(4, 0, 7)];
         expected.sort();
 
         let result = find_hidden_singles(&grid).unwrap();

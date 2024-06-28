@@ -1,6 +1,5 @@
 use crate::util::BitSet;
 
-
 #[derive(Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct CellCandidate {
     row: u32,
@@ -21,7 +20,11 @@ impl CellCandidate {
     }
 
     pub fn from_cell(cell: &Cell, val: u32) -> CellCandidate {
-        CellCandidate { row: cell.get_row(), col: cell.get_col(), val }
+        CellCandidate {
+            row: cell.get_row(),
+            col: cell.get_col(),
+            val,
+        }
     }
 
     pub fn get_row(&self) -> u32 {
@@ -39,7 +42,11 @@ impl CellCandidate {
 
 impl Cell {
     pub fn from(row: u32, col: u32, candidates: &BitSet) -> Cell {
-        Cell { row, col, candidates: candidates.clone() }
+        Cell {
+            row,
+            col,
+            candidates: candidates.clone(),
+        }
     }
 
     pub fn get_row(&self) -> u32 {

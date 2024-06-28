@@ -51,7 +51,10 @@ impl BitSet {
     }
 
     pub fn iter(&self) -> BitSetIterator {
-        BitSetIterator { bitset: self.0, pop_count: 0 }
+        BitSetIterator {
+            bitset: self.0,
+            pop_count: 0,
+        }
     }
 }
 

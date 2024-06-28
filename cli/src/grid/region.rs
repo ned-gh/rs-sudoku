@@ -1,8 +1,7 @@
-use std::collections::{HashSet, hash_set};
+use std::collections::{hash_set, HashSet};
 
-use crate::util::BitSet;
 use super::{Cell, Unit};
-
+use crate::util::BitSet;
 
 #[derive(Debug)]
 pub struct Region {
@@ -11,7 +10,9 @@ pub struct Region {
 
 impl Region {
     pub fn new() -> Region {
-        Region { values: HashSet::new() }
+        Region {
+            values: HashSet::new(),
+        }
     }
 
     pub fn len(&self) -> u32 {
@@ -58,7 +59,7 @@ impl Region {
         (row_span, col_span)
     }
 
-    pub fn get_single(&self) -> Cell{
+    pub fn get_single(&self) -> Cell {
         self.iter().next().unwrap().clone()
     }
 
@@ -67,15 +68,21 @@ impl Region {
     }
 
     pub fn intersection(&self, other: &Region) -> Region {
-        Region { values: self.values.intersection(&other.values).cloned().collect() }
+        Region {
+            values: self.values.intersection(&other.values).cloned().collect(),
+        }
     }
 
     pub fn union(&self, other: &Region) -> Region {
-        Region { values: self.values.union(&other.values).cloned().collect() }
+        Region {
+            values: self.values.union(&other.values).cloned().collect(),
+        }
     }
 
     pub fn difference(&self, other: &Region) -> Region {
-        Region { values: self.values.difference(&other.values).cloned().collect() }
+        Region {
+            values: self.values.difference(&other.values).cloned().collect(),
+        }
     }
 
     pub fn iter(&self) -> hash_set::Iter<Cell> {
