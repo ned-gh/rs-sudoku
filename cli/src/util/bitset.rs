@@ -8,6 +8,16 @@ impl BitSet {
         BitSet(0)
     }
 
+    pub fn from(vals: &[u32]) -> BitSet {
+        let mut bitset = BitSet::new();
+
+        for val in vals.iter() {
+            bitset.insert(*val);
+        }
+
+        bitset
+    }
+
     pub fn insert(&mut self, val: u32) {
         self.0 |= (1 << val) as u16;
     }
@@ -26,6 +36,10 @@ impl BitSet {
         }
 
         len as u32
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.0 == 0
     }
 
     pub fn get_smallest(&self) -> u32 {

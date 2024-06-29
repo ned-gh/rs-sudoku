@@ -57,7 +57,7 @@ impl Cell {
         self.col
     }
 
-    pub fn get_candidates(&self) -> BitSet {
-        self.candidates.clone()
+    pub fn get_candidates(&self) -> &BitSet {
+        &self.candidates
     }
 }

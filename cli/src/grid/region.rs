@@ -5,41 +5,53 @@ use crate::util::BitSet;
 
 #[derive(Debug)]
 pub struct Region {
-    values: HashSet<Cell>,
+    cells: HashSet<Cell>,
 }
 
 impl Region {
     pub fn new() -> Region {
         Region {
-            values: HashSet::new(),
+            cells: HashSet::new(),
         }
     }
 
-    pub fn from_vec(values_vec: &Vec<Cell>) -> Region {
-        let mut values = HashSet::new();
-        values.extend(values_vec.iter().cloned());
+    pub fn from_vec(cells_vec: &Vec<Cell>) -> Region {
+        let mut cells = HashSet::new();
+        cells.extend(cells_vec.iter().cloned());
 
-        Region { values }
+        Region { cells }
     }
 
     pub fn len(&self) -> u32 {
-        self.values.len() as u32
+        self.cells.len() as u32
     }
 
     pub fn is_empty(&self) -> bool {
-        self.values.is_empty()
+        self.cells.is_empty()
     }
 
     pub fn scan(&self, val: u32) -> Region {
-        let mut values = HashSet::new();
+        let mut cells = HashSet::new();
 
-        for cell in self.values.iter() {
+        for cell in self.cells.iter() {
             if cell.get_candidates().contains(val) {
-                values.insert(cell.clone());
+                cells.insert(cell.clone());
             }
         }
 
-        Region { values }
+        Region { cells }
+    }
+
+    pub fn scan_multiple(&self, vals: &BitSet) -> Region {
+        let mut cells = HashSet::new();
+
+        for cell in self.cells.iter() {
+            if !vals.intersection(cell.get_candidates()).is_empty() {
+                cells.insert(cell.clone());
+            }
+        }
+
+        Region { cells }
     }
 
     pub fn all_in_line(&self) -> Option<Unit> {
@@ -100,33 +112,43 @@ impl Region {
         (row_span, col_span)
     }
 
+    pub fn candidate_span(&self) -> BitSet {
+        let mut candidates = BitSet::new();
+
+        for cell in self.iter() {
+            candidates.extend(cell.get_candidates());
+        }
+
+        candidates
+    }
+
     pub fn get_single(&self) -> Cell {
         self.iter().next().unwrap().clone()
     }
 
     pub fn insert(&mut self, cell: Cell) {
-        self.values.insert(cell);
+        self.cells.insert(cell);
     }
 
     pub fn intersection(&self, other: &Region) -> Region {
         Region {
-            values: self.values.intersection(&other.values).cloned().collect(),
+            cells: self.cells.intersection(&other.cells).cloned().collect(),
         }
     }
 
     pub fn union(&self, other: &Region) -> Region {
         Region {
-            values: self.values.union(&other.values).cloned().collect(),
+            cells: self.cells.union(&other.cells).cloned().collect(),
         }
     }
 
     pub fn difference(&self, other: &Region) -> Region {
         Region {
-            values: self.values.difference(&other.values).cloned().collect(),
+            cells: self.cells.difference(&other.cells).cloned().collect(),
         }
     }
 
     pub fn iter(&self) -> hash_set::Iter<Cell> {
-        self.values.iter()
+        self.cells.iter()
     }
 }

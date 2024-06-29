@@ -5,6 +5,8 @@ use super::{Strategy, StrategyResult};
 use crate::grid::{CellCandidate, Grid, Region, UnitType};
 use crate::util::BitSet;
 
+use UnitType::{Col, MiniGrid, Row};
+
 pub struct NakedSets {
     result: StrategyResult,
 }
@@ -21,36 +23,35 @@ impl Strategy for NakedSets {
 
         for size in 2..5 {
             for k in 0..9 {
-                for unit_type in &[UnitType::Row, UnitType::Col, UnitType::MiniGrid] {
+                for unit_type in &[Row, Col, MiniGrid] {
                     let cells = grid.get_unit(unit_type, k);
 
                     for combination in cells.iter().cloned().combinations(size) {
                         let mut unique_candidates = BitSet::new();
 
                         for cell in combination.iter() {
-                            unique_candidates.extend(&cell.get_candidates());
+                            unique_candidates.extend(cell.get_candidates());
                         }
 
                         if unique_candidates.len() != size as u32 {
                             continue;
                         }
 
-                        let other = cells.difference(&Region::from_vec(&combination));
+                        let other = cells
+                            .difference(&Region::from_vec(&combination))
+                            .scan_multiple(&unique_candidates);
 
-                        let mut to_elim_in_other = vec![];
-                        for cell in other.iter() {
-                            for val in unique_candidates.iter() {
-                                if cell.get_candidates().contains(val) {
-                                    to_elim_in_other.push(CellCandidate::from_cell(cell, val))
-                                }
-                            }
-                        }
-
-                        if to_elim_in_other.is_empty() {
+                        if other.is_empty() {
                             continue;
                         }
 
-                        to_eliminate.extend(to_elim_in_other.into_iter());
+                        for cell in other.iter() {
+                            for val in unique_candidates.iter() {
+                                if cell.get_candidates().contains(val) {
+                                    to_eliminate.insert(CellCandidate::from_cell(cell, val));
+                                }
+                            }
+                        }
                     }
                 }
             }
