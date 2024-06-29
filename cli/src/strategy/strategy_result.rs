@@ -22,9 +22,3 @@ impl StrategyResult {
         &self.to_eliminate
     }
 }
-
-pub trait Strategy<StrategyType = Self> {
-    fn find(grid: &Grid) -> Option<StrategyType>;
-
-    fn get_result(&self) -> &StrategyResult;
-}

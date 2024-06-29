@@ -1,6 +1,6 @@
-use super::Cell;
-use super::Region;
-use super::UnitType;
+use std::fmt;
+
+use super::{Cell, CellCandidate, Region, UnitType};
 use crate::util::BitSet;
 
 pub struct Grid {
@@ -150,8 +150,65 @@ impl Grid {
         &self.candidates[index(row, col)]
     }
 
-    pub fn clear_candidate(&mut self, row: u32, col: u32, val: u32) {
+    pub fn clear_candidate(&mut self, cell_candidate: &CellCandidate) {
+        let (row, col, val) = cell_candidate.as_tuple();
         self.candidates[index(row, col)].remove(val);
+    }
+
+    fn clear_row(&mut self, row: u32, val: u32) {
+        for c in 0..9 {
+            self.candidates[index(row, c)].remove(val);
+        }
+    }
+
+    fn clear_col(&mut self, col: u32, val: u32) {
+        for r in 0..9 {
+            self.candidates[index(r, col)].remove(val);
+        }
+    }
+
+    fn clear_minigrid(&mut self, row: u32, col: u32, val: u32) {
+        let cr = (row / 3) * 3;
+        let cc = (col / 3) * 3;
+
+        for r in 0..3 {
+            for c in 0..3 {
+                self.candidates[index(cr + r, cc + c)].remove(val);
+            }
+        }
+    }
+
+    pub fn place(&mut self, cell_candidate: &CellCandidate) {
+        let (r, c, val) = cell_candidate.as_tuple();
+
+        self.placed[index(r, c)] = val;
+
+        self.candidates[index(r, c)] = BitSet::new();
+
+        self.clear_row(r, val);
+        self.clear_col(c, val);
+        self.clear_minigrid(r, c, val);
+    }
+
+    pub fn is_complete(&self) -> bool {
+        for k in 0..9 {
+            let row_vals = self.get_placed_in_row(k);
+            if row_vals.len() != 9 || row_vals.contains(&0) {
+                return false;
+            }
+
+            let col_vals = self.get_placed_in_col(k);
+            if col_vals.len() != 9 || col_vals.contains(&0) {
+                return false;
+            }
+
+            let minigrid_vals = self.get_placed_in_minigrid(k);
+            if minigrid_vals.len() != 9 || col_vals.contains(&0) {
+                return false;
+            }
+        }
+
+        true
     }
 }
 
@@ -168,4 +225,48 @@ pub fn minigrid_corners(box_n: u32) -> (u32, u32) {
     let corner_col = (box_n % 3) * 3;
 
     (corner_row, corner_col)
+}
+
+impl fmt::Display for Grid {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut s = vec![];
+
+        for r in 0..9 {
+            let mut row = vec![];
+
+            for c in 0..9 {
+                let val = self.placed[index(r, c)];
+
+                if val == 0 {
+                    row.push(String::from(" "));
+                } else {
+                    row.push(val.to_string());
+                }
+
+                if (c + 1) % 3 == 0 && c < 8 {
+                    row.push("|".to_string());
+                }
+            }
+
+            s.push(row.join(" "));
+
+            if (r + 1) % 3 == 0 && r < 8 {
+                let hline = row
+                    .iter()
+                    .map(|ch| {
+                        if ch != "|" {
+                            "-".to_string()
+                        } else {
+                            "+".to_string()
+                        }
+                    })
+                    .collect::<Vec<String>>()
+                    .join("-");
+
+                s.push(hline);
+            }
+        }
+
+        write!(f, "{}", s.join("\n"))
+    }
 }

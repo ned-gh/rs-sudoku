@@ -1,37 +1,21 @@
-use super::{Strategy, StrategyResult};
+use super::StrategyResult;
 use crate::grid::{CellCandidate, Grid};
 
-pub struct NakedSingles {
-    result: StrategyResult,
-}
+pub fn find_naked_single(grid: &Grid) -> Option<StrategyResult> {
+    for r in 0..9 {
+        for c in 0..9 {
+            let candidates = grid.get_candidates(r, c);
 
-impl NakedSingles {
-    fn from(result: StrategyResult) -> NakedSingles {
-        NakedSingles { result }
-    }
-}
-
-impl Strategy for NakedSingles {
-    fn find(grid: &Grid) -> Option<Self> {
-        for r in 0..9 {
-            for c in 0..9 {
-                let candidates = grid.get_candidates(r, c);
-
-                if candidates.len() == 1 {
-                    return Some(NakedSingles::from(StrategyResult::from(
-                        vec![CellCandidate::from(r, c, candidates.get_smallest())],
-                        vec![],
-                    )));
-                }
+            if candidates.len() == 1 {
+                return Some(StrategyResult::from(
+                    vec![CellCandidate::from(r, c, candidates.get_smallest())],
+                    vec![],
+                ));
             }
         }
-
-        None
     }
 
-    fn get_result(&self) -> &StrategyResult {
-        &self.result
-    }
+    None
 }
 
 #[cfg(test)]
@@ -46,10 +30,9 @@ mod tests {
 
         let expected = vec![CellCandidate::from(5, 2, 1)];
 
-        let singles = NakedSingles::find(&grid).unwrap();
-        let result = singles.get_result();
-        let to_place = result.get_to_place().clone();
-        let to_eliminate = result.get_to_eliminate().clone();
+        let single = find_naked_single(&grid).unwrap();
+        let to_place = single.get_to_place().clone();
+        let to_eliminate = single.get_to_eliminate().clone();
 
         assert_eq!(expected, to_place);
         assert_eq!(Vec::<CellCandidate>::new(), to_eliminate);

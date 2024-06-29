@@ -1,70 +1,53 @@
 use itertools::Itertools;
-use std::collections::HashSet;
 
-use super::{Strategy, StrategyResult};
+use super::StrategyResult;
 use crate::grid::{CellCandidate, Grid, Region, UnitType};
 use crate::util::BitSet;
 
 use UnitType::{Col, MiniGrid, Row};
 
-pub struct NakedSets {
-    result: StrategyResult,
-}
+pub fn find_naked_set(grid: &Grid) -> Option<StrategyResult> {
+    for size in 2..5 {
+        for k in 0..9 {
+            for unit_type in &[Row, Col, MiniGrid] {
+                let cells = grid.get_unit(unit_type, k);
 
-impl NakedSets {
-    fn from(result: StrategyResult) -> NakedSets {
-        NakedSets { result }
-    }
-}
+                for combination in cells.iter().cloned().combinations(size) {
+                    let mut unique_candidates = BitSet::new();
 
-impl Strategy for NakedSets {
-    fn find(grid: &Grid) -> Option<Self> {
-        for size in 2..5 {
-            for k in 0..9 {
-                for unit_type in &[Row, Col, MiniGrid] {
-                    let cells = grid.get_unit(unit_type, k);
+                    for cell in combination.iter() {
+                        unique_candidates.extend(cell.get_candidates());
+                    }
 
-                    for combination in cells.iter().cloned().combinations(size) {
-                        let mut unique_candidates = BitSet::new();
+                    if unique_candidates.len() != size as u32 {
+                        continue;
+                    }
 
-                        for cell in combination.iter() {
-                            unique_candidates.extend(cell.get_candidates());
-                        }
+                    let other = cells
+                        .difference(&Region::from_vec(&combination))
+                        .scan_multiple(&unique_candidates);
 
-                        if unique_candidates.len() != size as u32 {
-                            continue;
-                        }
+                    if other.is_empty() {
+                        continue;
+                    }
 
-                        let other = cells
-                            .difference(&Region::from_vec(&combination))
-                            .scan_multiple(&unique_candidates);
+                    let mut to_eliminate = vec![];
 
-                        if other.is_empty() {
-                            continue;
-                        }
-
-                        let mut to_eliminate = vec![];
-
-                        for cell in other.iter() {
-                            for val in unique_candidates.iter() {
-                                if cell.get_candidates().contains(val) {
-                                    to_eliminate.push(CellCandidate::from_cell(cell, val));
-                                }
+                    for cell in other.iter() {
+                        for val in unique_candidates.iter() {
+                            if cell.get_candidates().contains(val) {
+                                to_eliminate.push(CellCandidate::from_cell(cell, val));
                             }
                         }
-
-                        return Some(NakedSets::from(StrategyResult::from(vec![], to_eliminate)));
                     }
+
+                    return Some(StrategyResult::from(vec![], to_eliminate));
                 }
             }
         }
-
-        None
     }
 
-    fn get_result(&self) -> &StrategyResult {
-        &self.result
-    }
+    None
 }
 
 #[cfg(test)]
@@ -86,10 +69,9 @@ mod tests {
         ];
         expected.sort();
 
-        let hidden_sets = NakedSets::find(&grid).unwrap();
-        let result = hidden_sets.get_result();
-        let mut to_place = result.get_to_place().clone();
-        let mut to_eliminate = result.get_to_eliminate().clone();
+        let naked_set = find_naked_set(&grid).unwrap();
+        let mut to_place = naked_set.get_to_place().clone();
+        let mut to_eliminate = naked_set.get_to_eliminate().clone();
 
         to_place.sort();
         to_eliminate.sort();

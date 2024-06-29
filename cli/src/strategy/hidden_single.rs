@@ -1,44 +1,26 @@
-use std::collections::HashSet;
-
-use super::{Strategy, StrategyResult};
+use super::StrategyResult;
 use crate::grid::{CellCandidate, Grid, UnitType};
 
 use UnitType::{Col, MiniGrid, Row};
 
-pub struct HiddenSingles {
-    result: StrategyResult,
-}
+pub fn find_hidden_single(grid: &Grid) -> Option<StrategyResult> {
+    for val in 1..10 {
+        for k in 0..9 {
+            for unit_type in &[Row, Col, MiniGrid] {
+                let cells = grid.get_unit(unit_type, k).scan(val);
+                if cells.len() == 1 {
+                    let cell = cells.get_single();
 
-impl HiddenSingles {
-    fn from(result: StrategyResult) -> HiddenSingles {
-        HiddenSingles { result }
-    }
-}
-
-impl Strategy for HiddenSingles {
-    fn find(grid: &Grid) -> Option<Self> {
-        for val in 1..10 {
-            for k in 0..9 {
-                for unit_type in &[Row, Col, MiniGrid] {
-                    let cells = grid.get_unit(unit_type, k).scan(val);
-                    if cells.len() == 1 {
-                        let cell = cells.get_single();
-
-                        return Some(HiddenSingles::from(StrategyResult::from(
-                            vec![CellCandidate::from_cell(&cell, val)],
-                            vec![],
-                        )));
-                    }
+                    return Some(StrategyResult::from(
+                        vec![CellCandidate::from_cell(&cell, val)],
+                        vec![],
+                    ));
                 }
             }
         }
-
-        None
     }
 
-    fn get_result(&self) -> &StrategyResult {
-        &self.result
-    }
+    None
 }
 
 #[cfg(test)]
@@ -53,10 +35,9 @@ mod tests {
 
         let expected = vec![CellCandidate::from(4, 8, 1)];
 
-        let singles = HiddenSingles::find(&grid).unwrap();
-        let result = singles.get_result();
-        let to_place = result.get_to_place().clone();
-        let to_eliminate = result.get_to_eliminate().clone();
+        let single = find_hidden_single(&grid).unwrap();
+        let to_place = single.get_to_place().clone();
+        let to_eliminate = single.get_to_eliminate().clone();
 
         assert_eq!(expected, to_place);
         assert_eq!(Vec::<CellCandidate>::new(), to_eliminate);

@@ -1,67 +1,46 @@
 use itertools::Itertools;
-use std::collections::HashSet;
 
-use super::{Strategy, StrategyResult};
+use super::StrategyResult;
 use crate::grid::{CellCandidate, Grid, UnitType};
 use crate::util::BitSet;
 
 use UnitType::{Col, MiniGrid, Row};
 
-pub struct HiddenSets {
-    result: StrategyResult,
-}
+pub fn find_hidden_set(grid: &Grid) -> Option<StrategyResult> {
+    for size in 2..5 {
+        for k in 0..9 {
+            for unit_type in &[Row, Col, MiniGrid] {
+                let unit_cells = grid.get_unit(unit_type, k);
+                let candidate_span = unit_cells.candidate_span();
 
-impl HiddenSets {
-    fn from(result: StrategyResult) -> HiddenSets {
-        HiddenSets { result }
-    }
-}
+                for candidate_combination in candidate_span.iter().combinations(size as usize) {
+                    let candidate_bitset = BitSet::from(&candidate_combination);
 
-impl Strategy for HiddenSets {
-    fn find(grid: &Grid) -> Option<Self> {
-        for size in 2..5 {
-            for k in 0..9 {
-                for unit_type in &[Row, Col, MiniGrid] {
-                    let unit_cells = grid.get_unit(unit_type, k);
-                    let candidate_span = unit_cells.candidate_span();
+                    let cells = unit_cells.scan_multiple(&candidate_bitset);
 
-                    for candidate_combination in candidate_span.iter().combinations(size as usize) {
-                        let candidate_bitset = BitSet::from(&candidate_combination);
+                    if cells.len() != size {
+                        continue;
+                    }
 
-                        let cells = unit_cells.scan_multiple(&candidate_bitset);
+                    let mut to_eliminate = vec![];
 
-                        if cells.len() != size {
-                            continue;
+                    for cell in cells.iter() {
+                        let elim_candidates = cell.get_candidates().difference(&candidate_bitset);
+
+                        for val in elim_candidates.iter() {
+                            to_eliminate.push(CellCandidate::from_cell(cell, val));
                         }
+                    }
 
-                        let mut to_eliminate = vec![];
-
-                        for cell in cells.iter() {
-                            let elim_candidates =
-                                cell.get_candidates().difference(&candidate_bitset);
-
-                            for val in elim_candidates.iter() {
-                                to_eliminate.push(CellCandidate::from_cell(cell, val));
-                            }
-                        }
-
-                        if !to_eliminate.is_empty() {
-                            return Some(HiddenSets::from(StrategyResult::from(
-                                vec![],
-                                to_eliminate,
-                            )));
-                        }
+                    if !to_eliminate.is_empty() {
+                        return Some(StrategyResult::from(vec![], to_eliminate));
                     }
                 }
             }
         }
-
-        None
     }
 
-    fn get_result(&self) -> &StrategyResult {
-        &self.result
-    }
+    None
 }
 
 #[cfg(test)]
@@ -81,10 +60,9 @@ mod tests {
         ];
         expected.sort();
 
-        let hidden_sets = HiddenSets::find(&grid).unwrap();
-        let result = hidden_sets.get_result();
-        let mut to_place = result.get_to_place().clone();
-        let mut to_eliminate = result.get_to_eliminate().clone();
+        let hidden_set = find_hidden_set(&grid).unwrap();
+        let mut to_place = hidden_set.get_to_place().clone();
+        let mut to_eliminate = hidden_set.get_to_eliminate().clone();
 
         to_place.sort();
         to_eliminate.sort();

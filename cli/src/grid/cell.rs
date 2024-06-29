@@ -38,6 +38,10 @@ impl CellCandidate {
     pub fn get_val(&self) -> u32 {
         self.val
     }
+
+    pub fn as_tuple(&self) -> (u32, u32, u32) {
+        (self.row, self.col, self.val)
+    }
 }
 
 impl Cell {
