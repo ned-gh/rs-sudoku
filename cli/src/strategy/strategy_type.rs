@@ -9,6 +9,7 @@ pub enum Strategy {
     NakedSet,
     HiddenSet,
     XWing,
+    XYWing,
 }
 
 use Strategy::*;
@@ -22,6 +23,8 @@ impl Strategy {
             LockedCandidates,
             NakedSet,
             HiddenSet,
+            XWing,
+            XYWing,
         ]
     }
 
@@ -34,6 +37,7 @@ impl Strategy {
             NakedSet => find_naked_set,
             HiddenSet => find_hidden_set,
             XWing => find_xwing,
+            XYWing => find_xywing,
         }
     }
 }

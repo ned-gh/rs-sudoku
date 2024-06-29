@@ -64,4 +64,19 @@ impl Cell {
     pub fn get_candidates(&self) -> &BitSet {
         &self.candidates
     }
+
+    pub fn can_see(&self, other: &Cell) -> bool {
+        if self.row == other.row {
+            return true;
+        }
+
+        if self.col == other.col {
+            return true;
+        }
+
+        let minigrid = (self.row / 3) * 3 + (self.col / 3);
+        let other_minigrid = (other.row / 3) * 3 + (other.col / 3);
+
+        minigrid == other_minigrid
+    }
 }

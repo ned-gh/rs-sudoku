@@ -130,6 +130,10 @@ impl Region {
         self.cells.insert(cell);
     }
 
+    pub fn remove(&mut self, cell: &Cell) {
+        self.cells.remove(cell);
+    }
+
     pub fn intersection(&self, other: &Region) -> Region {
         Region {
             cells: self.cells.intersection(&other.cells).cloned().collect(),

@@ -210,6 +210,39 @@ impl Grid {
 
         true
     }
+
+    pub fn get_nvalue_cells(&self, n: u32) -> Region {
+        let mut cells = Region::new();
+
+        for r in 0..9 {
+            for c in 0..9 {
+                let cands = &self.candidates[index(r, c)];
+
+                if cands.len() == n {
+                    cells.insert(Cell::from(r, c, &cands));
+                }
+            }
+        }
+
+        cells
+    }
+
+    pub fn get_cells_that_see(&self, cell: &Cell, include_cell: bool) -> Region {
+        let row = cell.get_row();
+        let col = cell.get_col();
+        let minigrid = minigrid_n(row, col);
+
+        let mut cells = self
+            .get_unit(&UnitType::Row, row)
+            .union(&self.get_unit(&UnitType::Col, col))
+            .union(&self.get_unit(&UnitType::MiniGrid, minigrid));
+
+        if !include_cell {
+            cells.remove(cell);
+        }
+
+        cells
+    }
 }
 
 pub fn index(row: u32, col: u32) -> usize {

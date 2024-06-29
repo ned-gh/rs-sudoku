@@ -7,6 +7,7 @@ mod pointing_set;
 mod strategy_result;
 mod strategy_type;
 mod xwing;
+mod xywing;
 
 pub use hidden_set::*;
 pub use hidden_single::*;
@@ -17,3 +18,4 @@ pub use pointing_set::*;
 pub use strategy_result::*;
 pub use strategy_type::*;
 pub use xwing::*;
+pub use xywing::*;
