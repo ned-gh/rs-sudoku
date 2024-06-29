@@ -19,8 +19,6 @@ impl NakedSets {
 
 impl Strategy for NakedSets {
     fn find(grid: &Grid) -> Option<Self> {
-        let mut to_eliminate = HashSet::new();
-
         for size in 2..5 {
             for k in 0..9 {
                 for unit_type in &[Row, Col, MiniGrid] {
@@ -45,26 +43,23 @@ impl Strategy for NakedSets {
                             continue;
                         }
 
+                        let mut to_eliminate = vec![];
+
                         for cell in other.iter() {
                             for val in unique_candidates.iter() {
                                 if cell.get_candidates().contains(val) {
-                                    to_eliminate.insert(CellCandidate::from_cell(cell, val));
+                                    to_eliminate.push(CellCandidate::from_cell(cell, val));
                                 }
                             }
                         }
+
+                        return Some(NakedSets::from(StrategyResult::from(vec![], to_eliminate)));
                     }
                 }
             }
         }
 
-        if to_eliminate.is_empty() {
-            None
-        } else {
-            Some(NakedSets::from(StrategyResult::from(
-                vec![],
-                to_eliminate.into_iter().collect(),
-            )))
-        }
+        None
     }
 
     fn get_result(&self) -> &StrategyResult {
@@ -83,23 +78,6 @@ mod tests {
         let grid = Grid::from_str(bd).unwrap();
 
         let mut expected = vec![
-            CellCandidate::from(3, 5, 5),
-            CellCandidate::from(3, 5, 7),
-            CellCandidate::from(3, 6, 5),
-            CellCandidate::from(3, 6, 6),
-            CellCandidate::from(4, 5, 5),
-            CellCandidate::from(4, 5, 6),
-            CellCandidate::from(5, 5, 5),
-            CellCandidate::from(5, 5, 6),
-            CellCandidate::from(5, 5, 7),
-            CellCandidate::from(5, 8, 3),
-            CellCandidate::from(5, 8, 5),
-            CellCandidate::from(5, 8, 6),
-            CellCandidate::from(6, 3, 4),
-            CellCandidate::from(6, 3, 5),
-            CellCandidate::from(6, 3, 7),
-            CellCandidate::from(6, 4, 5),
-            CellCandidate::from(6, 4, 7),
             CellCandidate::from(8, 1, 1),
             CellCandidate::from(8, 1, 7),
             CellCandidate::from(8, 7, 1),

@@ -13,23 +13,20 @@ impl NakedSingles {
 
 impl Strategy for NakedSingles {
     fn find(grid: &Grid) -> Option<Self> {
-        let mut singles = vec![];
-
         for r in 0..9 {
             for c in 0..9 {
                 let candidates = grid.get_candidates(r, c);
 
                 if candidates.len() == 1 {
-                    singles.push(CellCandidate::from(r, c, candidates.get_smallest()));
+                    return Some(NakedSingles::from(StrategyResult::from(
+                        vec![CellCandidate::from(r, c, candidates.get_smallest())],
+                        vec![],
+                    )));
                 }
             }
         }
 
-        if singles.is_empty() {
-            None
-        } else {
-            Some(NakedSingles::from(StrategyResult::from(singles, vec![])))
-        }
+        None
     }
 
     fn get_result(&self) -> &StrategyResult {

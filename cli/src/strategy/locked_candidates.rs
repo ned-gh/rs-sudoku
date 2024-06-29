@@ -15,8 +15,6 @@ impl LockedCandidates {
 
 impl Strategy for LockedCandidates {
     fn find(grid: &Grid) -> Option<Self> {
-        let mut to_eliminate = HashSet::new();
-
         for val in 1..10 {
             for k in 0..9 {
                 for unit_type in &[UnitType::Row, UnitType::Col] {
@@ -41,20 +39,18 @@ impl Strategy for LockedCandidates {
                         continue;
                     }
 
-                    to_eliminate
-                        .extend(other.iter().map(|cell| CellCandidate::from_cell(cell, val)));
+                    return Some(LockedCandidates::from(StrategyResult::from(
+                        vec![],
+                        other
+                            .iter()
+                            .map(|cell| CellCandidate::from_cell(cell, val))
+                            .collect(),
+                    )));
                 }
             }
         }
 
-        if to_eliminate.is_empty() {
-            None
-        } else {
-            Some(LockedCandidates::from(StrategyResult::from(
-                vec![],
-                to_eliminate.into_iter().collect(),
-            )))
-        }
+        None
     }
 
     fn get_result(&self) -> &StrategyResult {
@@ -70,22 +66,9 @@ mod tests {
     fn test_locked_candidates() {
         let bd =
             "000910040060007508000000201090005100000030000003800070607000000584200010030086000";
-        let mut grid = Grid::from_str(bd).unwrap();
+        let grid = Grid::from_str(bd).unwrap();
 
-        // remove 6 candidate from (row, col) = (2, 7) to get correct grid state
-        grid.clear_candidate(2, 7, 6);
-
-        let mut expected = vec![
-            CellCandidate::from(0, 0, 7),
-            CellCandidate::from(0, 1, 7),
-            CellCandidate::from(2, 1, 5),
-            CellCandidate::from(2, 2, 5),
-            CellCandidate::from(4, 6, 6),
-            CellCandidate::from(5, 6, 6),
-            CellCandidate::from(3, 8, 6),
-            CellCandidate::from(4, 8, 6),
-            CellCandidate::from(5, 8, 6),
-        ];
+        let mut expected = vec![CellCandidate::from(2, 1, 5), CellCandidate::from(2, 2, 5)];
         expected.sort();
 
         let locked_candidates = LockedCandidates::find(&grid).unwrap();

@@ -19,8 +19,6 @@ impl HiddenSets {
 
 impl Strategy for HiddenSets {
     fn find(grid: &Grid) -> Option<Self> {
-        let mut to_eliminate = HashSet::new();
-
         for size in 2..5 {
             for k in 0..9 {
                 for unit_type in &[Row, Col, MiniGrid] {
@@ -36,48 +34,29 @@ impl Strategy for HiddenSets {
                             continue;
                         }
 
-                        // DEBUGGING
-                        let mut actually_elim = vec![];
+                        let mut to_eliminate = vec![];
 
                         for cell in cells.iter() {
                             let elim_candidates =
                                 cell.get_candidates().difference(&candidate_bitset);
 
                             for val in elim_candidates.iter() {
-                                to_eliminate.insert(CellCandidate::from_cell(cell, val));
-
-                                // DEBUGGING
-                                actually_elim.push(CellCandidate::from_cell(cell, val));
+                                to_eliminate.push(CellCandidate::from_cell(cell, val));
                             }
                         }
 
-                        // DEBUGGING
-                        if !actually_elim.is_empty() {
-                            println!("FOUND HIDDEN SET OF SIZE {}", size);
-                            println!("CANDIDATES: {:?}", candidate_bitset);
-                            println!("CELLS:");
-                            for cell in cells.iter() {
-                                println!("  {:?}", cell);
-                            }
-                            println!("ELIM:");
-                            for cell in actually_elim.iter() {
-                                println!("  {:?}", cell);
-                            }
-                            println!();
+                        if !to_eliminate.is_empty() {
+                            return Some(HiddenSets::from(StrategyResult::from(
+                                vec![],
+                                to_eliminate,
+                            )));
                         }
                     }
                 }
             }
         }
 
-        if to_eliminate.is_empty() {
-            None
-        } else {
-            Some(HiddenSets::from(StrategyResult::from(
-                vec![],
-                to_eliminate.into_iter().collect(),
-            )))
-        }
+        None
     }
 
     fn get_result(&self) -> &StrategyResult {
@@ -96,18 +75,9 @@ mod tests {
         let grid = Grid::from_str(bd).unwrap();
 
         let mut expected = vec![
-            CellCandidate::from(0, 7, 5),
-            CellCandidate::from(0, 7, 6),
-            CellCandidate::from(3, 5, 5),
             CellCandidate::from(4, 5, 6),
             CellCandidate::from(5, 5, 5),
             CellCandidate::from(5, 5, 6),
-            CellCandidate::from(5, 7, 3),
-            CellCandidate::from(5, 7, 6),
-            CellCandidate::from(6, 7, 3),
-            CellCandidate::from(6, 7, 5),
-            CellCandidate::from(6, 7, 6),
-            CellCandidate::from(7, 7, 5),
         ];
         expected.sort();
 
