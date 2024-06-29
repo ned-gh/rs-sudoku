@@ -43,8 +43,6 @@ pub fn find_xywing(grid: &Grid) -> Option<StrategyResult> {
             .scan(val);
 
         if sees_both.is_empty() {
-            println!("WAS EMPTY");
-            println!("-----");
             continue;
         }
 
