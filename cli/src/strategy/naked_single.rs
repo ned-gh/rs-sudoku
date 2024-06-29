@@ -1,23 +1,39 @@
-use super::StrategyResult;
+use super::{Strategy, StrategyResult};
 use crate::grid::{CellCandidate, Grid};
 
-pub fn find_naked_singles(grid: &Grid) -> Option<StrategyResult> {
-    let mut singles = vec![];
+pub struct NakedSingles {
+    result: StrategyResult,
+}
 
-    for r in 0..9 {
-        for c in 0..9 {
-            let candidates = grid.get_candidates(r, c);
+impl NakedSingles {
+    fn from(result: StrategyResult) -> NakedSingles {
+        NakedSingles { result }
+    }
+}
 
-            if candidates.len() == 1 {
-                singles.push(CellCandidate::from(r, c, candidates.get_smallest()));
+impl Strategy for NakedSingles {
+    fn find(grid: &Grid) -> Option<Self> {
+        let mut singles = vec![];
+
+        for r in 0..9 {
+            for c in 0..9 {
+                let candidates = grid.get_candidates(r, c);
+
+                if candidates.len() == 1 {
+                    singles.push(CellCandidate::from(r, c, candidates.get_smallest()));
+                }
             }
+        }
+
+        if singles.is_empty() {
+            None
+        } else {
+            Some(NakedSingles::from(StrategyResult::from(singles, vec![])))
         }
     }
 
-    if singles.is_empty() {
-        None
-    } else {
-        Some(StrategyResult::from(singles, vec![]))
+    fn get_result(&self) -> &StrategyResult {
+        &self.result
     }
 }
 
@@ -33,7 +49,8 @@ mod tests {
 
         let expected = vec![CellCandidate::from(5, 2, 1)];
 
-        let result = find_naked_singles(&grid).unwrap();
+        let singles = NakedSingles::find(&grid).unwrap();
+        let result = singles.get_result();
         let to_place = result.get_to_place().clone();
         let to_eliminate = result.get_to_eliminate().clone();
 

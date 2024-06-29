@@ -1,57 +1,73 @@
 use itertools::Itertools;
 use std::collections::HashSet;
 
-use super::StrategyResult;
+use super::{Strategy, StrategyResult};
 use crate::grid::{CellCandidate, Grid, Region, UnitType};
 use crate::util::BitSet;
 
-pub fn find_naked_sets(grid: &Grid) -> Option<StrategyResult> {
-    let mut to_eliminate = HashSet::new();
+pub struct HiddenSets {
+    result: StrategyResult,
+}
 
-    for size in 2..5 {
-        for k in 0..9 {
-            for unit_type in &[UnitType::Row, UnitType::Col, UnitType::MiniGrid] {
-                let cells = grid.get_unit(unit_type, k);
+impl HiddenSets {
+    fn from(result: StrategyResult) -> HiddenSets {
+        HiddenSets { result }
+    }
+}
 
-                for combination in cells.iter().cloned().combinations(size) {
-                    let mut unique_candidates = BitSet::new();
+impl Strategy for HiddenSets {
+    fn find(grid: &Grid) -> Option<Self> {
+        let mut to_eliminate = HashSet::new();
 
-                    for cell in combination.iter() {
-                        unique_candidates.extend(&cell.get_candidates());
-                    }
+        for size in 2..5 {
+            for k in 0..9 {
+                for unit_type in &[UnitType::Row, UnitType::Col, UnitType::MiniGrid] {
+                    let cells = grid.get_unit(unit_type, k);
 
-                    if unique_candidates.len() != size as u32 {
-                        continue;
-                    }
+                    for combination in cells.iter().cloned().combinations(size) {
+                        let mut unique_candidates = BitSet::new();
 
-                    let other = cells.difference(&Region::from_vec(&combination));
+                        for cell in combination.iter() {
+                            unique_candidates.extend(&cell.get_candidates());
+                        }
 
-                    let mut to_elim_in_other = vec![];
-                    for cell in other.iter() {
-                        for val in unique_candidates.iter() {
-                            if cell.get_candidates().contains(val) {
-                                to_elim_in_other.push(CellCandidate::from_cell(cell, val))
+                        if unique_candidates.len() != size as u32 {
+                            continue;
+                        }
+
+                        let other = cells.difference(&Region::from_vec(&combination));
+
+                        let mut to_elim_in_other = vec![];
+                        for cell in other.iter() {
+                            for val in unique_candidates.iter() {
+                                if cell.get_candidates().contains(val) {
+                                    to_elim_in_other.push(CellCandidate::from_cell(cell, val))
+                                }
                             }
                         }
-                    }
 
-                    if to_elim_in_other.is_empty() {
-                        continue;
-                    }
+                        if to_elim_in_other.is_empty() {
+                            continue;
+                        }
 
-                    to_eliminate.extend(to_elim_in_other.into_iter());
+                        to_eliminate.extend(to_elim_in_other.into_iter());
+                    }
                 }
             }
         }
+
+        if to_eliminate.is_empty() {
+            None
+        } else {
+            Some(HiddenSets::from(StrategyResult::from(
+                vec![],
+                to_eliminate.into_iter().collect(),
+            )))
+        }
     }
 
-    if to_eliminate.is_empty() {
-        None
-    } else {
-        Some(StrategyResult::from(
-            vec![],
-            to_eliminate.into_iter().collect(),
-        ))
+    fn get_result(&self) -> &StrategyResult {
+        &self.result
     }
 }
 
@@ -91,7 +107,8 @@ mod tests {
         ];
         expected.sort();
 
-        let result = find_naked_sets(&grid).unwrap();
+        let hidden_sets = HiddenSets::find(&grid).unwrap();
+        let result = hidden_sets.get_result();
         let mut to_place = result.get_to_place().clone();
         let mut to_eliminate = result.get_to_eliminate().clone();
 

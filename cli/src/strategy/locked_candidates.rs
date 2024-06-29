@@ -1,47 +1,64 @@
 use std::collections::HashSet;
 
-use super::StrategyResult;
+use super::{Strategy, StrategyResult};
 use crate::grid::{CellCandidate, Grid, Unit, UnitType};
 
-pub fn find_locked_candidates(grid: &Grid) -> Option<StrategyResult> {
-    let mut to_eliminate = HashSet::new();
+pub struct LockedCandidates {
+    result: StrategyResult,
+}
 
-    for val in 1..10 {
-        for k in 0..9 {
-            for unit_type in &[UnitType::Row, UnitType::Col] {
-                let cells = grid.get_unit(unit_type, k).scan(val);
+impl LockedCandidates {
+    fn from(result: StrategyResult) -> LockedCandidates {
+        LockedCandidates { result }
+    }
+}
 
-                if cells.is_empty() {
-                    continue;
+impl Strategy for LockedCandidates {
+    fn find(grid: &Grid) -> Option<Self> {
+        let mut to_eliminate = HashSet::new();
+
+        for val in 1..10 {
+            for k in 0..9 {
+                for unit_type in &[UnitType::Row, UnitType::Col] {
+                    let cells = grid.get_unit(unit_type, k).scan(val);
+
+                    if cells.is_empty() {
+                        continue;
+                    }
+
+                    let Some(minigrid) = cells.all_in_minigrid() else {
+                        continue;
+                    };
+
+                    let other = match minigrid {
+                        Unit::MiniGrid(n) => grid.get_unit(&UnitType::MiniGrid, n),
+                        _ => unreachable!(),
+                    }
+                    .difference(&cells)
+                    .scan(val);
+
+                    if other.is_empty() {
+                        continue;
+                    }
+
+                    to_eliminate
+                        .extend(other.iter().map(|cell| CellCandidate::from_cell(cell, val)));
                 }
-
-                let Some(minigrid) = cells.all_in_minigrid() else {
-                    continue;
-                };
-
-                let other = match minigrid {
-                    Unit::MiniGrid(n) => grid.get_unit(&UnitType::MiniGrid, n),
-                    _ => unreachable!(),
-                }
-                .difference(&cells)
-                .scan(val);
-
-                if other.is_empty() {
-                    continue;
-                }
-
-                to_eliminate.extend(other.iter().map(|cell| CellCandidate::from_cell(cell, val)));
             }
+        }
+
+        if to_eliminate.is_empty() {
+            None
+        } else {
+            Some(LockedCandidates::from(StrategyResult::from(
+                vec![],
+                to_eliminate.into_iter().collect(),
+            )))
         }
     }
 
-    if to_eliminate.is_empty() {
-        None
-    } else {
-        Some(StrategyResult::from(
-            vec![],
-            to_eliminate.into_iter().collect(),
-        ))
+    fn get_result(&self) -> &StrategyResult {
+        &self.result
     }
 }
 
@@ -71,7 +88,8 @@ mod tests {
         ];
         expected.sort();
 
-        let result = find_locked_candidates(&grid).unwrap();
+        let locked_candidates = LockedCandidates::find(&grid).unwrap();
+        let result = locked_candidates.get_result();
         let mut to_place = result.get_to_place().clone();
         let mut to_eliminate = result.get_to_eliminate().clone();
 

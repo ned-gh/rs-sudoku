@@ -1,4 +1,4 @@
-use crate::grid::CellCandidate;
+use crate::grid::{CellCandidate, Grid};
 
 #[derive(Debug)]
 pub struct StrategyResult {
@@ -21,4 +21,10 @@ impl StrategyResult {
     pub fn get_to_eliminate(&self) -> &Vec<CellCandidate> {
         &self.to_eliminate
     }
+}
+
+pub trait Strategy<StrategyType = Self> {
+    fn find(grid: &Grid) -> Option<StrategyType>;
+
+    fn get_result(&self) -> &StrategyResult;
 }
