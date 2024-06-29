@@ -5,17 +5,17 @@ use super::{Strategy, StrategyResult};
 use crate::grid::{CellCandidate, Grid, Region, UnitType};
 use crate::util::BitSet;
 
-pub struct HiddenSets {
+pub struct NakedSets {
     result: StrategyResult,
 }
 
-impl HiddenSets {
-    fn from(result: StrategyResult) -> HiddenSets {
-        HiddenSets { result }
+impl NakedSets {
+    fn from(result: StrategyResult) -> NakedSets {
+        NakedSets { result }
     }
 }
 
-impl Strategy for HiddenSets {
+impl Strategy for NakedSets {
     fn find(grid: &Grid) -> Option<Self> {
         let mut to_eliminate = HashSet::new();
 
@@ -59,7 +59,7 @@ impl Strategy for HiddenSets {
         if to_eliminate.is_empty() {
             None
         } else {
-            Some(HiddenSets::from(StrategyResult::from(
+            Some(NakedSets::from(StrategyResult::from(
                 vec![],
                 to_eliminate.into_iter().collect(),
             )))
@@ -107,7 +107,7 @@ mod tests {
         ];
         expected.sort();
 
-        let hidden_sets = HiddenSets::find(&grid).unwrap();
+        let hidden_sets = NakedSets::find(&grid).unwrap();
         let result = hidden_sets.get_result();
         let mut to_place = result.get_to_place().clone();
         let mut to_eliminate = result.get_to_eliminate().clone();
