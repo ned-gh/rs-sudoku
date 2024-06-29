@@ -100,7 +100,7 @@ impl Region {
         }
     }
 
-    fn span(&self) -> (HashSet<u32>, HashSet<u32>) {
+    pub fn span(&self) -> (HashSet<u32>, HashSet<u32>) {
         let mut row_span = HashSet::new();
         let mut col_span = HashSet::new();
 

@@ -8,11 +8,23 @@ pub enum Strategy {
     LockedCandidates,
     NakedSet,
     HiddenSet,
+    XWing,
 }
 
 use Strategy::*;
 
 impl Strategy {
+    pub fn get_all() -> Vec<Strategy> {
+        vec![
+            NakedSingle,
+            HiddenSingle,
+            PointingSet,
+            LockedCandidates,
+            NakedSet,
+            HiddenSet,
+        ]
+    }
+
     pub fn get_finder(&self) -> fn(&Grid) -> Option<StrategyResult> {
         match self {
             NakedSingle => find_naked_single,
@@ -21,6 +33,7 @@ impl Strategy {
             LockedCandidates => find_locked_candidates,
             NakedSet => find_naked_set,
             HiddenSet => find_hidden_set,
+            XWing => find_xwing,
         }
     }
 }

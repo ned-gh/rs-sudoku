@@ -1,8 +1,6 @@
 use crate::grid::Grid;
 use crate::strategy::*;
 
-use Strategy::*;
-
 pub struct Solver {
     grid: Grid,
     strategies: Vec<Strategy>,
@@ -10,14 +8,7 @@ pub struct Solver {
 
 impl Solver {
     pub fn from(grid: Grid) -> Solver {
-        let strategies = vec![
-            NakedSingle,
-            HiddenSingle,
-            PointingSet,
-            LockedCandidates,
-            NakedSet,
-            HiddenSet,
-        ];
+        let strategies = Strategy::get_all();
 
         Solver { grid, strategies }
     }
