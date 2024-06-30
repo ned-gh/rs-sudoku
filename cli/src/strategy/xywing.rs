@@ -66,7 +66,15 @@ mod tests {
     fn test_find_xywing() {
         let bd =
             "357000400062070930094203700235847619716002843948136200029715380573028190081300500";
-        let grid = Grid::from_str(bd).unwrap();
+        let mut grid = Grid::from_str(bd).unwrap();
+
+        // set up grid properly: these eliminations are due to a naked pair (4/6) and pointing pair
+        // (6)
+        grid.clear_candidate(&CellCandidate::from(0, 8, 6));
+        grid.clear_candidate(&CellCandidate::from(2, 8, 6));
+        grid.clear_candidate(&CellCandidate::from(8, 8, 4));
+        grid.clear_candidate(&CellCandidate::from(8, 8, 6));
+        grid.clear_candidate(&CellCandidate::from(8, 7, 6));
 
         let expected = vec![CellCandidate::from(0, 5, 9)];
 
