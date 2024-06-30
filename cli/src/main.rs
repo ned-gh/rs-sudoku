@@ -1,8 +1,4 @@
-mod grid;
-mod solver;
-mod strategy;
-mod translator;
-mod util;
+use lib::{grid, solver, translator};
 
 use std::{
     fs,
