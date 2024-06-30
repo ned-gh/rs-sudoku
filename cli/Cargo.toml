@@ -5,3 +5,4 @@ edition = "2021"
 
 [dependencies]
 lib = { version = "0.1.0", path = "../lib" }
+threadpool = "1.8.1"

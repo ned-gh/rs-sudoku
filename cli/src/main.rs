@@ -1,9 +1,9 @@
+use threadpool::ThreadPool;
 use lib::{grid, solver, translator};
 
 use std::{
     fs,
     sync::{Arc, Mutex},
-    thread,
 };
 
 fn main() {
@@ -14,57 +14,57 @@ fn main() {
         "../sudoku-exchange-puzzle-bank/diabolical.txt",
     ];
 
-    let results = Arc::new(Mutex::new(vec![]));
-    let mut join_handles = vec![];
+    let pool = ThreadPool::new(12);
+    let results = Arc::new(Mutex::new(vec![0; paths.len()]));
+    let total_visited = Arc::new(Mutex::new(0));
+    let totals = paths.map(|path| fs::read_to_string(path).unwrap().lines().count());
+    let grand_total: usize = totals.iter().sum();
 
-    for path in paths {
-        let results_clone = Arc::clone(&results);
-        join_handles.push(thread::spawn(move || {
-            let (solved, total) = solve_file(path);
-            results_clone
-                .lock()
-                .unwrap()
-                .push((solved, total, path.to_string()));
-        }));
+    for (i, &path) in paths.iter().enumerate() {
+        let contents = fs::read_to_string(path).unwrap();
+
+        for line in contents.lines() {
+            let line = translator::from_sudoku_exchange_bank_str(line).unwrap();
+            let total_visited_clone = Arc::clone(&total_visited);
+            let results_clone = Arc::clone(&results);
+
+            pool.execute(move || {
+                if solve_until_end(&line) {
+                    results_clone.lock().unwrap()[i] += 1;
+                }
+
+                *total_visited_clone.lock().unwrap() += 1;
+
+                let num = *total_visited_clone.lock().unwrap();
+                if num % 10000 == 0 {
+                    println!("Progress: {}/{}", num, grand_total);
+                }
+            });
+        }
     }
+    
+    pool.join();
 
-    for jh in join_handles {
-        let _ = jh.join();
-    }
-
-    println!("----------");
-    println!("results:");
-    for (solved, total, path_str) in results.lock().unwrap().iter() {
-        println!("  {} : {}/{} solved", path_str, solved, total);
+    println!("Results:");
+    for (i ,(solved, total)) in results.lock().unwrap().iter().zip(totals.iter()).enumerate() {
+        let percentage_solved = 100.0 * (*solved as f64) / (*total as f64);
+        println!("{} : {}/{} ({:.2}%) solved", paths[i], solved, total, percentage_solved);
     }
 }
 
-fn solve_file(path: &str) -> (i32, i32) {
-    let contents = fs::read_to_string(path).unwrap();
-
-    let mut solved_count = 0;
-    let mut total = 0;
-
-    for line in contents.lines() {
-        let bd = translator::from_sudoku_exchange_bank_str(line).unwrap();
-        if solve_until_end(&bd) {
-            solved_count += 1;
-        }
-
-        total += 1;
-
-        if total % 1000 == 0 {
-            println!("{} progress: {}/{} solved", path, solved_count, total);
+fn solve_chunk(chunk: &[&str]) -> i32 {
+    let mut solved = 0;
+    for &bd in chunk {
+        if solve_until_end(bd) {
+            solved += 1;
         }
     }
 
-    println!("solved {}/{} from {}", solved_count, total, path);
-
-    (solved_count, total)
+    solved
 }
 
 fn solve_until_end(bd: &str) -> bool {
-    let grid = grid::Grid::from_str(bd).unwrap();
+    let grid = grid::Grid::from_str(&bd).unwrap();
     let mut solver = solver::Solver::from(grid);
 
     loop {
