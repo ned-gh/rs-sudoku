@@ -10,6 +10,7 @@ pub enum Strategy {
     HiddenSet,
     XWing,
     XYWing,
+    XYZWing,
 }
 
 use Strategy::*;
@@ -25,6 +26,7 @@ impl Strategy {
             HiddenSet,
             XWing,
             XYWing,
+            XYZWing,
         ]
     }
 
@@ -38,6 +40,7 @@ impl Strategy {
             HiddenSet => find_hidden_set,
             XWing => find_xwing,
             XYWing => find_xywing,
+            XYZWing => find_xyzwing,
         }
     }
 }

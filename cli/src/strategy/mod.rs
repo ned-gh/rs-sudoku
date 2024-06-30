@@ -8,6 +8,7 @@ mod strategy_result;
 mod strategy_type;
 mod xwing;
 mod xywing;
+mod xyzwing;
 
 pub use hidden_set::*;
 pub use hidden_single::*;
@@ -19,3 +20,4 @@ pub use strategy_result::*;
 pub use strategy_type::*;
 pub use xwing::*;
 pub use xywing::*;
+pub use xyzwing::*;
