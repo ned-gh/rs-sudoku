@@ -15,9 +15,9 @@ impl Region {
         }
     }
 
-    pub fn from_vec(cells_vec: &Vec<Cell>) -> Region {
+    pub fn from(cells_slice: &[Cell]) -> Region {
         let mut cells = HashSet::new();
-        cells.extend(cells_vec.iter().cloned());
+        cells.extend(cells_slice.iter().cloned());
 
         Region { cells }
     }
@@ -28,6 +28,10 @@ impl Region {
 
     pub fn is_empty(&self) -> bool {
         self.cells.is_empty()
+    }
+
+    pub fn is_subset(&self, other: &Region) -> bool {
+        self.cells.is_subset(&other.cells)
     }
 
     pub fn scan(&self, val: u32) -> Region {

@@ -24,7 +24,7 @@ pub fn find_naked_set(grid: &Grid) -> Option<StrategyResult> {
                     }
 
                     let other = cells
-                        .difference(&Region::from_vec(&combination))
+                        .difference(&Region::from(&combination))
                         .scan_multiple(&unique_candidates);
 
                     if other.is_empty() {

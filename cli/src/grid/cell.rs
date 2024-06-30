@@ -79,4 +79,8 @@ impl Cell {
 
         minigrid == other_minigrid
     }
+
+    pub fn get_minigrid_n(&self) -> u32 {
+        (self.get_row() / 3) * 3 + (self.get_col() / 3)
+    }
 }

@@ -1,6 +1,7 @@
 use super::*;
 use crate::grid::Grid;
 
+#[derive(Debug)]
 pub enum Strategy {
     NakedSingle,
     HiddenSingle,
@@ -12,6 +13,7 @@ pub enum Strategy {
     XYWing,
     XYZWing,
     Swordfish,
+    RectangleElimination,
 }
 
 use Strategy::*;
@@ -29,6 +31,7 @@ impl Strategy {
             XYWing,
             XYZWing,
             Swordfish,
+            RectangleElimination,
         ]
     }
 
@@ -44,6 +47,7 @@ impl Strategy {
             XYWing => find_xywing,
             XYZWing => find_xyzwing,
             Swordfish => find_swordfish,
+            RectangleElimination => find_rectangle_elimination,
         }
     }
 }

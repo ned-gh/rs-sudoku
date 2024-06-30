@@ -29,16 +29,29 @@ pub fn find_xyzwing(grid: &Grid) -> Option<StrategyResult> {
                 continue;
             }
 
+            let val = xz.intersection(yz).get_smallest();
+
             let sees_all = grid
                 .get_cells_that_see(tv, false)
                 .intersection(&grid.get_cells_that_see(bv1, false))
-                .intersection(&grid.get_cells_that_see(bv2, false));
+                .intersection(&grid.get_cells_that_see(bv2, false))
+                .scan(val);
 
             if sees_all.is_empty() {
                 continue;
             }
 
-            let val = xz.intersection(yz).get_smallest();
+            // println!("-----");
+            // println!("{}", grid);
+            // for i in 0..81 {
+            //     let r = i / 9;
+            //     let c = i % 9;
+            //     println!("({}, {}) : {:?}", r, c, grid.get_candidates(r, c));
+            // }
+            // println!("tv:  {:?}", tv);
+            // println!("bv1: {:?}", bv1);
+            // println!("bv2: {:?}", bv2);
+            // println!("sees_all: {:?}", sees_all);
 
             return Some(StrategyResult::from(
                 vec![],

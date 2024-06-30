@@ -8,6 +8,7 @@ pub struct Grid {
     candidates: Vec<BitSet>,
 }
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub enum GridError {
     InvalidCharacter(char),
@@ -89,7 +90,7 @@ impl Grid {
                 if *self.placed.get(index(r, c)).unwrap() == 0 {
                     let row = self.get_placed_in_row(r);
                     let col = self.get_placed_in_col(c);
-                    let minigrid = self.get_placed_in_minigrid(minigrid_n(r, c));
+                    let minigrid = self.get_placed_in_minigrid(get_minigrid_n_from_coords(r, c));
 
                     for n in 1..10 {
                         if !(row.contains(&n) || col.contains(&n) || minigrid.contains(&n)) {
@@ -144,6 +145,14 @@ impl Grid {
         }
 
         region
+    }
+
+    pub fn get_unit_containing(&self, unit_type: &UnitType, cell: &Cell) -> Region {
+        match unit_type {
+            UnitType::Row => self.get_unit(unit_type, cell.get_row()),
+            UnitType::Col => self.get_unit(unit_type, cell.get_col()),
+            UnitType::MiniGrid => self.get_unit(unit_type, cell.get_minigrid_n()),
+        }
     }
 
     pub fn get_candidates(&self, row: u32, col: u32) -> &BitSet {
@@ -219,7 +228,7 @@ impl Grid {
                 let cands = &self.candidates[index(r, c)];
 
                 if cands.len() == n {
-                    cells.insert(Cell::from(r, c, &cands));
+                    cells.insert(Cell::from(r, c, cands));
                 }
             }
         }
@@ -230,7 +239,7 @@ impl Grid {
     pub fn get_cells_that_see(&self, cell: &Cell, include_cell: bool) -> Region {
         let row = cell.get_row();
         let col = cell.get_col();
-        let minigrid = minigrid_n(row, col);
+        let minigrid = cell.get_minigrid_n();
 
         let mut cells = self
             .get_unit(&UnitType::Row, row)
@@ -245,15 +254,15 @@ impl Grid {
     }
 }
 
-pub fn index(row: u32, col: u32) -> usize {
-    (9 * row + col) as usize
-}
-
-pub fn minigrid_n(row: u32, col: u32) -> u32 {
+pub fn get_minigrid_n_from_coords(row: u32, col: u32) -> u32 {
     (row / 3) * 3 + (col / 3)
 }
 
-pub fn minigrid_corners(box_n: u32) -> (u32, u32) {
+fn index(row: u32, col: u32) -> usize {
+    (9 * row + col) as usize
+}
+
+fn minigrid_corners(box_n: u32) -> (u32, u32) {
     let corner_row = (box_n / 3) * 3;
     let corner_col = (box_n % 3) * 3;
 

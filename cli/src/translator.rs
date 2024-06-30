@@ -5,9 +5,5 @@ pub fn from_sudoku_exchange_bank_str(line: &str) -> Option<String> {
     // - digit string
     // - rating
 
-    if let Some(s) = line.split(" ").skip(1).next() {
-        Some(s.to_string())
-    } else {
-        None
-    }
+    line.split(' ').nth(1).map(|s| s.to_string())
 }

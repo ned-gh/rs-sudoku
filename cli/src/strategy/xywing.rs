@@ -23,7 +23,10 @@ pub fn find_xywing(grid: &Grid) -> Option<StrategyResult> {
         let has_b = ab_cands.intersection(bc_cands).len() == 1;
         let has_a = ab_cands.intersection(ac_cands).len() == 1;
         let has_c = bc_cands.intersection(ac_cands).len() == 1;
-        let no_common = ab_cands.intersection(bc_cands).intersection(ac_cands).len() == 0;
+        let no_common = ab_cands
+            .intersection(bc_cands)
+            .intersection(ac_cands)
+            .is_empty();
 
         if !has_three || !has_b || !has_a || !has_c || !no_common {
             continue;

@@ -1,4 +1,4 @@
-use crate::grid::{CellCandidate, Grid};
+use crate::grid::CellCandidate;
 
 #[derive(Debug)]
 pub struct StrategyResult {
