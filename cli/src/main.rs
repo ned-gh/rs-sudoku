@@ -1,10 +1,14 @@
 mod grid;
 mod solver;
 mod strategy;
-mod util;
 mod translator;
+mod util;
 
-use std::{fs, thread, sync::{Arc, Mutex}};
+use std::{
+    fs,
+    sync::{Arc, Mutex},
+    thread,
+};
 
 fn main() {
     let paths = [
@@ -21,7 +25,10 @@ fn main() {
         let results_clone = Arc::clone(&results);
         join_handles.push(thread::spawn(move || {
             let (solved, total) = solve_file(path);
-            results_clone.lock().unwrap().push((solved, total, path.to_string()));
+            results_clone
+                .lock()
+                .unwrap()
+                .push((solved, total, path.to_string()));
         }));
     }
 
