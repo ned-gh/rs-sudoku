@@ -11,6 +11,7 @@ pub enum Strategy {
     XWing,
     XYWing,
     XYZWing,
+    Swordfish,
 }
 
 use Strategy::*;
@@ -27,6 +28,7 @@ impl Strategy {
             XWing,
             XYWing,
             XYZWing,
+            Swordfish,
         ]
     }
 
@@ -41,6 +43,7 @@ impl Strategy {
             XWing => find_xwing,
             XYWing => find_xywing,
             XYZWing => find_xyzwing,
+            Swordfish => find_swordfish,
         }
     }
 }
