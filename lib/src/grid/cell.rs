@@ -42,6 +42,25 @@ impl CellCandidate {
     pub fn as_tuple(&self) -> (u32, u32, u32) {
         (self.row, self.col, self.val)
     }
+
+    pub fn can_see(&self, other: &CellCandidate, check_val: bool) -> bool {
+        if check_val && self.val != other.val {
+            return false;
+        }
+
+        if self.row == other.row {
+            return true;
+        }
+
+        if self.col == other.col {
+            return true;
+        }
+
+        let minigrid = (self.row / 3) * 3 + (self.col / 3);
+        let other_minigrid = (other.row / 3) * 3 + (other.col / 3);
+
+        minigrid == other_minigrid
+    }
 }
 
 impl Cell {

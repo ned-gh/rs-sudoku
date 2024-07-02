@@ -104,6 +104,18 @@ impl Region {
         }
     }
 
+    pub fn all_in_unit(&self) -> Option<Unit> {
+        if let Some(line) = self.all_in_line() {
+            return Some(line);
+        }
+
+        if let Some(minigrid) = self.all_in_minigrid() {
+            return Some(minigrid);
+        }
+
+        None
+    }
+
     pub fn span(&self) -> (HashSet<u32>, HashSet<u32>) {
         let mut row_span = HashSet::new();
         let mut col_span = HashSet::new();

@@ -11,6 +11,7 @@ mod swordfish;
 mod xwing;
 mod xywing;
 mod xyzwing;
+mod aic;
 
 pub use hidden_set::*;
 pub use hidden_single::*;

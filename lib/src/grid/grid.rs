@@ -1,4 +1,5 @@
 use std::fmt;
+use std::vec;
 
 use super::{Cell, CellCandidate, Region, UnitType};
 use crate::util::BitSet;
@@ -251,6 +252,35 @@ impl Grid {
         }
 
         cells
+    }
+
+    pub fn get_cells_that_see_coords(&self, row: u32, col: u32, include_cell: bool) -> Region {
+        let minigrid = get_minigrid_n_from_coords(row, col);
+
+        let mut cells = self
+            .get_unit(&UnitType::Row, row)
+            .union(&self.get_unit(&UnitType::Col, col))
+            .union(&self.get_unit(&UnitType::MiniGrid, minigrid));
+
+        if !include_cell {
+            cells.remove(&Cell::from(row, col, &self.candidates[index(row, col)]));
+        }
+
+        cells
+    }
+
+    pub fn iter(&self) -> vec::IntoIter<Cell> {
+        let mut cells = vec![];
+
+        for (i, cands) in self.candidates.iter().enumerate() {
+            if cands.is_empty() {
+                continue;
+            }
+
+            cells.push(Cell::from((i as u32) / 9, (i as u32) % 9, cands));
+        }
+
+        cells.into_iter()
     }
 }
 
