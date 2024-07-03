@@ -3,6 +3,7 @@ use crate::grid::{CellCandidate, Grid};
 
 pub fn find_naked_single(grid: &Grid) -> Option<StrategyResult> {
     let mut singles = vec![];
+
     for r in 0..9 {
         for c in 0..9 {
             let candidates = grid.get_candidates(r, c);
