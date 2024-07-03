@@ -61,6 +61,10 @@ impl CellCandidate {
 
         minigrid == other_minigrid
     }
+
+    pub fn same_cell(&self, other: &CellCandidate) -> bool {
+        self.row == other.row && self.col == other.col
+    }
 }
 
 impl Cell {
