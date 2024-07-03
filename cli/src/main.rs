@@ -1,10 +1,11 @@
-use threadpool::ThreadPool;
-use lib::{grid, solver, translator};
-
 use std::{
     fs,
     sync::{Arc, Mutex},
+    time::SystemTime,
 };
+
+use threadpool::ThreadPool;
+use lib::{grid, solver, translator};
 
 fn main() {
     let paths = [
@@ -19,6 +20,8 @@ fn main() {
     let total_visited = Arc::new(Mutex::new(0));
     let totals = paths.map(|path| fs::read_to_string(path).unwrap().lines().count());
     let grand_total: usize = totals.iter().sum();
+
+    let start_time = SystemTime::now();
 
     for (i, &path) in paths.iter().enumerate() {
         let contents = fs::read_to_string(path).unwrap();
@@ -45,22 +48,18 @@ fn main() {
     
     pool.join();
 
+    let end_time = start_time.elapsed();
+
+    match end_time {
+        Ok(elapsed) => println!("Finished in {:.2}s", elapsed.as_secs_f64()),
+        Err(e) => println!("Error while computing time: {:?}", e),
+    };
+
     println!("Results:");
     for (i ,(solved, total)) in results.lock().unwrap().iter().zip(totals.iter()).enumerate() {
         let percentage_solved = 100.0 * (*solved as f64) / (*total as f64);
         println!("{} : {}/{} ({:.2}%) solved", paths[i], solved, total, percentage_solved);
     }
-}
-
-fn solve_chunk(chunk: &[&str]) -> i32 {
-    let mut solved = 0;
-    for &bd in chunk {
-        if solve_until_end(bd) {
-            solved += 1;
-        }
-    }
-
-    solved
 }
 
 fn solve_until_end(bd: &str) -> bool {
