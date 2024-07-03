@@ -22,11 +22,7 @@ pub fn find_hidden_single(grid: &Grid) -> Option<StrategyResult> {
     if singles.is_empty() {
         None
     } else {
-        Some(StrategyResult::from(
-            "Hidden Single",
-            singles,
-            vec![],
-        ))
+        Some(StrategyResult::from("Hidden Single", singles, vec![]))
     }
 }
 

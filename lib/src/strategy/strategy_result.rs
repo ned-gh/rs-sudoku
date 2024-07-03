@@ -8,7 +8,11 @@ pub struct StrategyResult {
 }
 
 impl StrategyResult {
-    pub fn from(name: &str, to_place: Vec<CellCandidate>, to_eliminate: Vec<CellCandidate>) -> StrategyResult {
+    pub fn from(
+        name: &str,
+        to_place: Vec<CellCandidate>,
+        to_eliminate: Vec<CellCandidate>,
+    ) -> StrategyResult {
         StrategyResult {
             name: name.to_string(),
             to_place,

@@ -17,11 +17,7 @@ pub fn find_naked_single(grid: &Grid) -> Option<StrategyResult> {
     if singles.is_empty() {
         None
     } else {
-        Some(StrategyResult::from(
-            "Naked Single",
-            singles,
-            vec![],
-        ))
+        Some(StrategyResult::from("Naked Single", singles, vec![]))
     }
 }
 

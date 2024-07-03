@@ -12,11 +12,15 @@ mod tests {
         let mut solver = solver::Solver::from(grid::Grid::from_str(bd).unwrap());
         let mut iter = 0;
 
-        if verbose { println!("{}", solver.get_grid()); }
+        if verbose {
+            println!("{}", solver.get_grid());
+        }
 
         loop {
             let res = solver.step();
-            if verbose { println!("--- iter {} ---", iter); }
+            if verbose {
+                println!("--- iter {} ---", iter);
+            }
 
             match res {
                 Some(sr) => {
@@ -40,17 +44,21 @@ mod tests {
 
                     solver.apply(&sr);
 
-                    if verbose { println!("{}", solver.get_grid()); }
-                },
+                    if verbose {
+                        println!("{}", solver.get_grid());
+                    }
+                }
                 None => {
                     println!("--- end ---");
                     println!("solved: {}", solver.get_grid().is_complete());
-                    if verbose { println!("{}", solver.get_grid()); }
+                    if verbose {
+                        println!("{}", solver.get_grid());
+                    }
                     println!("bd: {}", bd);
                     println!("--- end ---");
 
                     return solver.get_grid().is_complete();
-                },
+                }
             };
 
             iter += 1;
