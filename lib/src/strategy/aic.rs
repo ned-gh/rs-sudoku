@@ -1,23 +1,16 @@
 use std::collections::{HashMap, HashSet, VecDeque};
 
-use crate::grid::{Grid, CellCandidate, Cell, UnitType, Unit, Region};
+use super::link::{make_link_map, LinkType};
+use crate::grid::{Cell, CellCandidate, Grid, Region, Unit, UnitType};
 
-use UnitType::{Row, Col, MiniGrid};
-
-type LinkMap = HashMap<CellCandidate, HashSet<CellCandidate>>;
 type AIC = Vec<CellCandidate>;
 type AICMap = HashMap<usize, HashSet<AIC>>;
 
-enum LinkType {
-    StrongLink,
-    WeakLink,
-}
-
-use LinkType::{StrongLink, WeakLink};
+use LinkType::{StrongInCell, StrongInUnit, WeakInCell, WeakInUnit};
 
 fn find_aic(grid: &Grid) -> AICMap {
-    let strong_link_map = make_strong_link_map(grid);
-    let weak_link_map = make_weak_link_map(grid);
+    let strong_link_map = make_link_map(grid, &[StrongInCell, StrongInUnit]);
+    let weak_link_map = make_link_map(grid, &[StrongInCell, StrongInUnit, WeakInCell, WeakInUnit]);
 
     let mut aics: AICMap = HashMap::new();
 
@@ -28,15 +21,12 @@ fn find_aic(grid: &Grid) -> AICMap {
             let current_path = to_visit.pop_front().unwrap();
             let current_node = current_path.last().unwrap();
 
-            let search_link_type = if (current_path.len() % 2) == 1 {
-                StrongLink
-            } else {
-                WeakLink
-            };
+            let search_strong_link = (current_path.len() % 2) == 1;
 
-            let search_map = match search_link_type {
-                StrongLink => &strong_link_map,
-                WeakLink => &weak_link_map,
+            let search_map = if search_strong_link {
+                &strong_link_map
+            } else {
+                &weak_link_map
             };
 
             if !search_map.contains_key(current_node) {
@@ -53,12 +43,9 @@ fn find_aic(grid: &Grid) -> AICMap {
 
                 let new_len = new_path.len();
 
-                if matches!(search_link_type, StrongLink) && new_len > 2 {
-                    if !aics.contains_key(&new_len) {
-                        aics.insert(new_len, HashSet::new());
-                    }
-
-                    aics.get_mut(&new_len).unwrap().insert(new_path.clone());
+                if search_strong_link && new_len > 2 {
+                    let aic_set = aics.entry(new_len).or_insert_with(HashSet::new);
+                    aic_set.insert(new_path.clone());
                 }
 
                 to_visit.push_back(new_path);
@@ -150,8 +137,8 @@ fn check_continous(grid: &Grid, aic: &AIC) {
     let start = aic.first().unwrap();
     let end = aic.last().unwrap();
 
-    let (start_r, start_c, start_val) = start.as_tuple();
-    let (end_r, end_c, end_val) = end.as_tuple();
+    let (start_r, start_c, _) = start.as_tuple();
+    let (end_r, end_c, _) = end.as_tuple();
 
     if start_r != end_r || start_c != end_c {
         return;
@@ -159,16 +146,12 @@ fn check_continous(grid: &Grid, aic: &AIC) {
 
     let mut cells = vec![];
 
-    for (i, cell) in aic.iter().enumerate() {
+    for i in 0..aic.len() {
         if (i % 2) == 0 {
             continue;
         }
 
-        let next = if i < aic.len() - 1 {
-            i + 1
-        } else {
-            0
-        };
+        let next = if i < aic.len() - 1 { i + 1 } else { 0 };
 
         let (ir, ic, iv) = aic[i].as_tuple();
         let (nr, nc, nv) = aic[next].as_tuple();
@@ -198,7 +181,11 @@ fn check_continous(grid: &Grid, aic: &AIC) {
     }
 
     println!("-----");
-    println!("Continuous AIC loop (length {}): {}", aic.len(), aic_to_string(aic));
+    println!(
+        "Continuous AIC loop (length {}): {}",
+        aic.len(),
+        aic_to_string(aic)
+    );
     println!("-> elim: ({} total)", cells.len());
 
     for cell in cells.iter() {
@@ -213,7 +200,7 @@ fn check_discontinuous(grid: &Grid, aic: &AIC) {
     let (start_r, start_c, start_val) = start.as_tuple();
     let (end_r, end_c, end_val) = end.as_tuple();
 
-    if (start_r, start_c) == (end_r, end_c) || !start.can_see(end, false) {
+    if (start_r, start_c) == (end_r, end_c) || start_val == end_val || !start.can_see(end, false) {
         return;
     }
 
@@ -230,9 +217,9 @@ fn check_discontinuous(grid: &Grid, aic: &AIC) {
 
     if let Some(unit) = reg.all_in_unit() {
         match unit {
-            Unit::Row(n) => cells = grid.get_unit(&Row, n).scan(start_val),
-            Unit::Col(n) => cells = grid.get_unit(&Col, n).scan(start_val),
-            Unit::MiniGrid(n) => cells = grid.get_unit(&MiniGrid, n).scan(start_val),
+            Unit::Row(n) => cells = grid.get_unit(&UnitType::Row, n).scan(start_val),
+            Unit::Col(n) => cells = grid.get_unit(&UnitType::Col, n).scan(start_val),
+            Unit::MiniGrid(n) => cells = grid.get_unit(&UnitType::MiniGrid, n).scan(start_val),
         }
     } else {
         return;
@@ -240,8 +227,15 @@ fn check_discontinuous(grid: &Grid, aic: &AIC) {
 
     if cells.len() == 2 {
         println!("-----");
-        println!("Discontinuous AIC loop (length {}): {}", aic.len(), aic_to_string(aic));
-        println!("-> elim: ({} total)", grid.get_candidates(start_r, start_c).len() - 1);
+        println!(
+            "Discontinuous AIC loop (length {}): {}",
+            aic.len(),
+            aic_to_string(aic)
+        );
+        println!(
+            "-> elim: ({} total)",
+            grid.get_candidates(start_r, start_c).len() - 1
+        );
 
         for val in grid.get_candidates(start_r, start_c).iter() {
             if val == start_val {
@@ -255,133 +249,26 @@ fn check_discontinuous(grid: &Grid, aic: &AIC) {
         println!("  {:?}", start);
     } else if cells.len() > 2 {
         println!("-----");
-        println!("Discontinuous AIC loop (length {}): {}", aic.len(), aic_to_string(aic));
+        println!(
+            "Discontinuous AIC loop (length {}): {}",
+            aic.len(),
+            aic_to_string(aic)
+        );
         println!("-> elim: ({} total)", 1);
         println!("  {:?}", CellCandidate::from(end_r, end_c, start_val));
     }
-}
-
-fn make_strong_link_map(grid: &Grid) -> LinkMap {
-    let mut map = LinkMap::new();
-
-    for cell in grid.get_nvalue_cells(2).iter() {
-        let candidates: Vec<u32> = cell.get_candidates().iter().collect();
-
-        for &a in candidates.iter() {
-            for &b in candidates.iter() {
-                if a == b {
-                    continue;
-                }
-
-                let cell_a = CellCandidate::from_cell(cell, a);
-                let cell_b = CellCandidate::from_cell(cell, b);
-
-                if !map.contains_key(&cell_a) {
-                    map.insert(cell_a.clone(), HashSet::new());
-                };
-
-                map.get_mut(&cell_a).unwrap().insert(cell_b);
-            }
-        }
-    }
-
-    for unit_type in &[Row, Col, MiniGrid] {
-        for k in 0..9 {
-            let unit = grid.get_unit(unit_type, k);
-
-            for val in 1..10 {
-                let cells = unit.scan(val);
-
-                if cells.len() != 2 {
-                    continue;
-                }
-
-                for a in cells.iter() {
-                    for b in cells.iter() {
-                        if a == b {
-                            continue;
-                        }
-
-                        let cell_a = CellCandidate::from_cell(a, val);
-                        let cell_b = CellCandidate::from_cell(b, val);
-
-                        if !map.contains_key(&cell_a) {
-                            map.insert(cell_a.clone(), HashSet::new());
-                        };
-
-                        map.get_mut(&cell_a).unwrap().insert(cell_b);
-                    }
-                }
-            }
-        }
-    }
-
-    map
-}
-
-fn make_weak_link_map(grid: &Grid) -> LinkMap {
-    let mut map = LinkMap::new();
-
-    for cell in grid.iter() {
-        let candidates: Vec<u32> = cell.get_candidates().iter().collect();
-
-        for &a in candidates.iter() {
-            for &b in candidates.iter() {
-                if a == b {
-                    continue;
-                }
-
-                let cell_a = CellCandidate::from_cell(&cell, a);
-                let cell_b = CellCandidate::from_cell(&cell, b);
-
-                if !map.contains_key(&cell_a) {
-                    map.insert(cell_a.clone(), HashSet::new());
-                };
-
-                map.get_mut(&cell_a).unwrap().insert(cell_b);
-            }
-        }
-    }
-
-    for unit_type in &[Row, Col, MiniGrid] {
-        for k in 0..9 {
-            let unit = grid.get_unit(unit_type, k);
-
-            for val in 1..10 {
-                let cells = unit.scan(val);
-
-                if cells.len() < 2 {
-                    continue;
-                }
-
-                for a in cells.iter() {
-                    for b in cells.iter() {
-                        if a == b {
-                            continue;
-                        }
-
-                        let cell_a = CellCandidate::from_cell(a, val);
-                        let cell_b = CellCandidate::from_cell(b, val);
-
-                        if !map.contains_key(&cell_a) {
-                            map.insert(cell_a.clone(), HashSet::new());
-                        };
-
-                        map.get_mut(&cell_a).unwrap().insert(cell_b);
-                    }
-                }
-            }
-        }
-    }
-
-    map
 }
 
 fn aic_to_string(aic: &AIC) -> String {
     let mut s = String::new();
 
     for (i, cell) in aic.iter().enumerate() {
-        s.push_str(&format!("({})r{}c{}", cell.get_val(), cell.get_row(), cell.get_col()));
+        s.push_str(&format!(
+            "({})r{}c{}",
+            cell.get_val(),
+            cell.get_row(),
+            cell.get_col()
+        ));
 
         if i < aic.len() - 1 {
             if i % 2 == 0 {
@@ -408,7 +295,7 @@ mod tests {
         // has discontinuous (strong link)
         // let bd =
         //     "307465100215798436400200000000680043004020001003040200001000007000002000530870910";
-        
+
         // has continuous
         let bd =
             "040060102027500496000004308410007985000050201000000607004000013061900024030001069";

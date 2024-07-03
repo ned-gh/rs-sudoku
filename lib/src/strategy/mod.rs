@@ -1,3 +1,4 @@
+mod aic;
 mod hidden_set;
 mod hidden_single;
 mod locked_candidates;
@@ -11,7 +12,8 @@ mod swordfish;
 mod xwing;
 mod xywing;
 mod xyzwing;
-mod aic;
+
+pub mod link;
 
 pub use hidden_set::*;
 pub use hidden_single::*;
