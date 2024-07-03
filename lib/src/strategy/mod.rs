@@ -15,6 +15,7 @@ mod xyzwing;
 
 pub mod link;
 
+pub use aic::*;
 pub use hidden_set::*;
 pub use hidden_single::*;
 pub use locked_candidates::*;

@@ -41,19 +41,8 @@ pub fn find_xyzwing(grid: &Grid) -> Option<StrategyResult> {
                 continue;
             }
 
-            // println!("-----");
-            // println!("{}", grid);
-            // for i in 0..81 {
-            //     let r = i / 9;
-            //     let c = i % 9;
-            //     println!("({}, {}) : {:?}", r, c, grid.get_candidates(r, c));
-            // }
-            // println!("tv:  {:?}", tv);
-            // println!("bv1: {:?}", bv1);
-            // println!("bv2: {:?}", bv2);
-            // println!("sees_all: {:?}", sees_all);
-
             return Some(StrategyResult::from(
+                "XYZ-Wing",
                 vec![],
                 sees_all
                     .iter()

@@ -54,10 +54,10 @@ fn make_in_cells(grid: &Grid, only_strong_links: bool) -> LinkMap {
     };
 
     for cell in cells.iter() {
-        let candidates: Vec<u32> = cell.get_candidates().iter().collect();
+        let candidates = cell.get_candidates();
 
-        for &a in candidates.iter() {
-            for &b in candidates.iter() {
+        for a in candidates.iter() {
+            for b in candidates.iter() {
                 if a == b {
                     continue;
                 }

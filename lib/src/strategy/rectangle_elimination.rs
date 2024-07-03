@@ -51,11 +51,13 @@ pub fn find_rectangle_elimination(grid: &Grid) -> Option<StrategyResult> {
                     let hinge_wing_unit = grid.get_unit_containing(&opposite, hinge).scan(val);
                     if hinge_wing_unit.len() == 2 {
                         return Some(StrategyResult::from(
+                            "Rectangle Elimination (two strong links)",
                             vec![CellCandidate::from_cell(hinge, val)],
                             vec![],
                         ));
                     } else {
                         return Some(StrategyResult::from(
+                            "Rectangle Elimination",
                             vec![],
                             vec![CellCandidate::from_cell(wing, val)],
                         ));

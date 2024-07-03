@@ -27,6 +27,7 @@ pub fn find_locked_candidates(grid: &Grid) -> Option<StrategyResult> {
                 }
 
                 return Some(StrategyResult::from(
+                    "Locked Candidates",
                     vec![],
                     other
                         .iter()

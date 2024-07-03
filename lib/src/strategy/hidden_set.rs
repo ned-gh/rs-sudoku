@@ -33,7 +33,7 @@ pub fn find_hidden_set(grid: &Grid) -> Option<StrategyResult> {
                     }
 
                     if !to_eliminate.is_empty() {
-                        return Some(StrategyResult::from(vec![], to_eliminate));
+                        return Some(StrategyResult::from("Hidden Set", vec![], to_eliminate));
                     }
                 }
             }

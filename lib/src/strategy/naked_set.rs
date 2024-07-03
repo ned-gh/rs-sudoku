@@ -41,7 +41,7 @@ pub fn find_naked_set(grid: &Grid) -> Option<StrategyResult> {
                         }
                     }
 
-                    return Some(StrategyResult::from(vec![], to_eliminate));
+                    return Some(StrategyResult::from("Naked Set", vec![], to_eliminate));
                 }
             }
         }

@@ -27,6 +27,7 @@ pub fn find_pointing_set(grid: &Grid) -> Option<StrategyResult> {
             }
 
             return Some(StrategyResult::from(
+                "Pointing Set",
                 vec![],
                 other
                     .iter()

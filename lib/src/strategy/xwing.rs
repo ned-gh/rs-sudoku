@@ -50,6 +50,7 @@ pub fn find_xwing(grid: &Grid) -> Option<StrategyResult> {
                 }
 
                 return Some(StrategyResult::from(
+                    "X-Wing",
                     vec![],
                     other
                         .iter()

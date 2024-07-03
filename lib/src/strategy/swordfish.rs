@@ -50,6 +50,7 @@ pub fn find_swordfish(grid: &Grid) -> Option<StrategyResult> {
                 }
 
                 return Some(StrategyResult::from(
+                    "Swordfish",
                     vec![],
                     other
                         .iter()

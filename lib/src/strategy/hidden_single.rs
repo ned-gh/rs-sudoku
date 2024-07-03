@@ -4,6 +4,8 @@ use crate::grid::{CellCandidate, Grid, UnitType};
 use UnitType::{Col, MiniGrid, Row};
 
 pub fn find_hidden_single(grid: &Grid) -> Option<StrategyResult> {
+    let mut singles = vec![];
+
     for val in 1..10 {
         for k in 0..9 {
             for unit_type in &[Row, Col, MiniGrid] {
@@ -11,16 +13,21 @@ pub fn find_hidden_single(grid: &Grid) -> Option<StrategyResult> {
                 if cells.len() == 1 {
                     let cell = cells.get_single();
 
-                    return Some(StrategyResult::from(
-                        vec![CellCandidate::from_cell(&cell, val)],
-                        vec![],
-                    ));
+                    singles.push(CellCandidate::from_cell(&cell, val));
                 }
             }
         }
     }
 
-    None
+    if singles.is_empty() {
+        None
+    } else {
+        Some(StrategyResult::from(
+            "Naked Single",
+            singles,
+            vec![],
+        ))
+    }
 }
 
 #[cfg(test)]

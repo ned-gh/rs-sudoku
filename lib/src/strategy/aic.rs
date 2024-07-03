@@ -1,17 +1,49 @@
 use std::collections::{HashMap, HashSet, VecDeque};
 
-use super::link::{make_link_map, LinkType};
-use crate::grid::{Cell, CellCandidate, Grid, Region, Unit, UnitType};
+use super::{
+    link::{make_link_map, LinkMap, LinkType},
+    StrategyResult,
+};
+use crate::grid::{CellCandidate, Grid};
 
 type AIC = Vec<CellCandidate>;
 type AICMap = HashMap<usize, HashSet<AIC>>;
 
 use LinkType::{StrongInCell, StrongInUnit, WeakInCell, WeakInUnit};
 
-fn find_aic(grid: &Grid) -> AICMap {
+pub fn find_aic(grid: &Grid) -> Option<StrategyResult> {
     let strong_link_map = make_link_map(grid, &[StrongInCell, StrongInUnit]);
     let weak_link_map = make_link_map(grid, &[StrongInCell, StrongInUnit, WeakInCell, WeakInUnit]);
 
+    let aics = build_aics(&strong_link_map, &weak_link_map);
+
+    let mut lengths: Vec<usize> = aics.keys().cloned().collect();
+    lengths.sort();
+
+    for l in lengths.iter() {
+        for aic in aics.get(l).unwrap().iter() {
+            if let Some(res) = check_type1(grid, aic) {
+                return Some(res);
+            }
+
+            if let Some(res) = check_type2(grid, aic) {
+                return Some(res);
+            }
+
+            if let Some(res) = check_continuous(grid, aic) {
+                return Some(res);
+            }
+
+            if let Some(res) = check_discontinuous(grid, aic, &strong_link_map) {
+                return Some(res);
+            }
+        }
+    }
+
+    None
+}
+
+fn build_aics(strong_link_map: &LinkMap, weak_link_map: &LinkMap) -> AICMap {
     let mut aics: AICMap = HashMap::new();
 
     for start_node in strong_link_map.keys() {
@@ -21,12 +53,16 @@ fn find_aic(grid: &Grid) -> AICMap {
             let current_path = to_visit.pop_front().unwrap();
             let current_node = current_path.last().unwrap();
 
+            if current_path.len() > 12 {
+                continue;
+            }
+
             let search_strong_link = (current_path.len() % 2) == 1;
 
             let search_map = if search_strong_link {
-                &strong_link_map
+                strong_link_map
             } else {
-                &weak_link_map
+                weak_link_map
             };
 
             if !search_map.contains_key(current_node) {
@@ -56,22 +92,12 @@ fn find_aic(grid: &Grid) -> AICMap {
     aics
 }
 
-fn check_aic(grid: &Grid, aic: &AIC) {
-    check_type1(grid, aic);
-
-    check_type2(grid, aic);
-
-    check_continous(grid, aic);
-
-    check_discontinuous(grid, aic);
-}
-
-fn check_type1(grid: &Grid, aic: &AIC) {
+fn check_type1(grid: &Grid, aic: &AIC) -> Option<StrategyResult> {
     let start = aic.first().unwrap();
     let end = aic.last().unwrap();
 
     if start.get_val() != end.get_val() {
-        return;
+        return None;
     }
 
     let (start_r, start_c, val) = start.as_tuple();
@@ -83,68 +109,63 @@ fn check_type1(grid: &Grid, aic: &AIC) {
         .scan(val);
 
     if cells.is_empty() {
-        return;
+        return None;
     }
 
-    println!("-----");
-    println!("Type 1 AIC (length {}): {}", aic.len(), aic_to_string(aic));
-    println!("-> elim:");
-
-    for cell in cells.iter() {
-        println!("  {:?}", CellCandidate::from_cell(cell, val));
-    }
+    Some(StrategyResult::from(
+        &format!("AIC Type 1: {}", aic_to_string(aic)),
+        vec![],
+        cells
+            .iter()
+            .map(|cell| CellCandidate::from_cell(cell, val))
+            .collect(),
+    ))
 }
 
-fn check_type2(grid: &Grid, aic: &AIC) {
+fn check_type2(grid: &Grid, aic: &AIC) -> Option<StrategyResult> {
     let start = aic.first().unwrap();
     let end = aic.last().unwrap();
-
-    if start.get_val() == end.get_val() {
-        return;
-    }
-
-    if !start.can_see(end, false) {
-        return;
-    }
 
     let (start_r, start_c, start_val) = start.as_tuple();
     let (end_r, end_c, end_val) = end.as_tuple();
 
-    let mut cells = vec![];
+    if (start_r, start_c) == (end_r, end_c) || start_val == end_val || !start.can_see(end, false) {
+        return None;
+    }
+
+    let mut cell_candidates = vec![];
 
     if grid.get_candidates(end_r, end_c).contains(start_val) {
-        cells.push(CellCandidate::from(end_r, end_c, start_val));
+        cell_candidates.push(CellCandidate::from(end_r, end_c, start_val));
     }
 
     if grid.get_candidates(start_r, start_c).contains(end_val) {
-        cells.push(CellCandidate::from(start_r, start_c, end_val));
+        cell_candidates.push(CellCandidate::from(start_r, start_c, end_val));
     }
 
-    if cells.is_empty() {
-        return;
+    if cell_candidates.is_empty() {
+        return None;
     }
 
-    println!("-----");
-    println!("Type 2 AIC (length {}): {}", aic.len(), aic_to_string(aic));
-    println!("-> elim:");
-
-    for cell in cells.iter() {
-        println!("  {:?}", cell);
-    }
+    Some(StrategyResult::from(
+        &format!("AIC Type 2: {}", aic_to_string(aic)),
+        vec![],
+        cell_candidates
+    ))
 }
 
-fn check_continous(grid: &Grid, aic: &AIC) {
+fn check_continuous(grid: &Grid, aic: &AIC) -> Option<StrategyResult> {
     let start = aic.first().unwrap();
     let end = aic.last().unwrap();
 
     let (start_r, start_c, _) = start.as_tuple();
     let (end_r, end_c, _) = end.as_tuple();
 
-    if start_r != end_r || start_c != end_c {
-        return;
+    if (start_r, start_c) != (end_r, end_c) {
+        return None;
     }
 
-    let mut cells = vec![];
+    let mut cell_candidates = vec![];
 
     for i in 0..aic.len() {
         if (i % 2) == 0 {
@@ -156,44 +177,44 @@ fn check_continous(grid: &Grid, aic: &AIC) {
         let (ir, ic, iv) = aic[i].as_tuple();
         let (nr, nc, nv) = aic[next].as_tuple();
 
-        if ir == nr && ic == nc {
+        if (ir, ic) == (nr, nc) {
+            // elim within cell
             for val in grid.get_candidates(ir, ic).iter() {
                 if val != iv && val != nv {
-                    cells.push(CellCandidate::from(ir, ic, val));
+                    cell_candidates.push(CellCandidate::from(ir, ic, val));
                 }
             }
         } else if iv == nv {
+            // elim within unit
             let sees_both = grid
                 .get_cells_that_see_coords(ir, ic, false)
                 .intersection(&grid.get_cells_that_see_coords(nr, nc, false));
 
-            for _cell in sees_both.iter() {
-                if !_cell.get_candidates().contains(iv) {
+            for cell in sees_both.iter() {
+                if !cell.get_candidates().contains(iv) {
                     continue;
                 }
-                cells.push(CellCandidate::from_cell(_cell, iv));
+                cell_candidates.push(CellCandidate::from_cell(cell, iv));
             }
         }
     }
 
-    if cells.is_empty() {
-        return;
+    if cell_candidates.is_empty() {
+        return None;
     }
 
-    println!("-----");
-    println!(
-        "Continuous AIC loop (length {}): {}",
-        aic.len(),
-        aic_to_string(aic)
-    );
-    println!("-> elim: ({} total)", cells.len());
-
-    for cell in cells.iter() {
-        println!("  {:?}", cell);
-    }
+    Some(StrategyResult::from(
+        &format!("Continuous AIC Loop: {}", aic_to_string(aic)),
+        vec![],
+        cell_candidates
+    ))
 }
 
-fn check_discontinuous(grid: &Grid, aic: &AIC) {
+fn check_discontinuous(
+    grid: &Grid,
+    aic: &AIC,
+    strong_link_map: &LinkMap,
+) -> Option<StrategyResult> {
     let start = aic.first().unwrap();
     let end = aic.last().unwrap();
 
@@ -201,61 +222,27 @@ fn check_discontinuous(grid: &Grid, aic: &AIC) {
     let (end_r, end_c, end_val) = end.as_tuple();
 
     if (start_r, start_c) == (end_r, end_c) || start_val == end_val || !start.can_see(end, false) {
-        return;
+        return None;
     }
 
     if !grid.get_candidates(end_r, end_c).contains(start_val) {
-        return;
+        return None;
     }
 
-    let reg = Region::from(&[
-        Cell::from(start_r, start_c, grid.get_candidates(start_r, start_c)),
-        Cell::from(end_r, end_c, grid.get_candidates(end_r, end_c)),
-    ]);
+    let discontinuity = CellCandidate::from(end_r, end_c, start_val);
 
-    let cells;
-
-    if let Some(unit) = reg.all_in_unit() {
-        match unit {
-            Unit::Row(n) => cells = grid.get_unit(&UnitType::Row, n).scan(start_val),
-            Unit::Col(n) => cells = grid.get_unit(&UnitType::Col, n).scan(start_val),
-            Unit::MiniGrid(n) => cells = grid.get_unit(&UnitType::MiniGrid, n).scan(start_val),
-        }
+    if strong_link_map.get(start).unwrap().contains(&discontinuity) {
+        Some(StrategyResult::from(
+            &format!("Discontinuous AIC Loop: {}", aic_to_string(aic)),
+            vec![start.clone()],
+            vec![]
+            ))
     } else {
-        return;
-    }
-
-    if cells.len() == 2 {
-        println!("-----");
-        println!(
-            "Discontinuous AIC loop (length {}): {}",
-            aic.len(),
-            aic_to_string(aic)
-        );
-        println!(
-            "-> elim: ({} total)",
-            grid.get_candidates(start_r, start_c).len() - 1
-        );
-
-        for val in grid.get_candidates(start_r, start_c).iter() {
-            if val == start_val {
-                continue;
-            }
-
-            println!("  {:?}", CellCandidate::from(start_r, start_c, val));
-        }
-
-        println!("-> place:");
-        println!("  {:?}", start);
-    } else if cells.len() > 2 {
-        println!("-----");
-        println!(
-            "Discontinuous AIC loop (length {}): {}",
-            aic.len(),
-            aic_to_string(aic)
-        );
-        println!("-> elim: ({} total)", 1);
-        println!("  {:?}", CellCandidate::from(end_r, end_c, start_val));
+        Some(StrategyResult::from(
+            &format!("Discontinuous AIC Loop: {}", aic_to_string(aic)),
+            vec![],
+            vec![discontinuity]
+        ))
     }
 }
 
@@ -286,6 +273,32 @@ fn aic_to_string(aic: &AIC) -> String {
 mod tests {
     use super::*;
 
+    fn check_aic(grid: &Grid, aic: &AIC, strong_link_map: &LinkMap) -> Option<Vec<StrategyResult>> {
+        let mut results = vec![];
+
+        if let Some(res) = check_type1(grid, aic) {
+            results.push(res);
+        }
+
+        if let Some(res) = check_type2(grid, aic) {
+            results.push(res);
+        }
+
+        if let Some(res) = check_continuous(grid, aic) {
+            results.push(res);
+        }
+
+        if let Some(res) = check_discontinuous(grid, aic, strong_link_map) {
+            results.push(res);
+        }
+
+        if results.is_empty() {
+            None
+        } else {
+            Some(results)
+        }
+    }
+
     #[test]
     fn test_aic() {
         // has discontinuous (weak link)
@@ -297,19 +310,30 @@ mod tests {
         //     "307465100215798436400200000000680043004020001003040200001000007000002000530870910";
 
         // has continuous
-        let bd =
-            "040060102027500496000004308410007985000050201000000607004000013061900024030001069";
+        // let bd =
+        //     "040060102027500496000004308410007985000050201000000607004000013061900024030001069";
 
+        // hard
+        let bd =
+            "004005000010900340080002009705080020000203000090050801300500090076009010000300700";
         let grid = Grid::from_str(bd).unwrap();
 
-        let aics = find_aic(&grid);
+        let strong_link_map = make_link_map(&grid, &[StrongInCell, StrongInUnit]);
+        let weak_link_map =
+            make_link_map(&grid, &[StrongInCell, StrongInUnit, WeakInCell, WeakInUnit]);
+
+        let aics = build_aics(&strong_link_map, &weak_link_map);
 
         let mut lengths: Vec<usize> = aics.keys().cloned().collect();
         lengths.sort();
 
         for l in lengths.iter() {
             for aic in aics.get(l).unwrap().iter() {
-                check_aic(&grid, aic);
+                if let Some(results) = check_aic(&grid, aic, &strong_link_map) {
+                    for res in results.iter() {
+                        println!("{:?}", res);
+                    }
+                }
             }
         }
     }
