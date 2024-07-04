@@ -1,5 +1,9 @@
 use std::{
-    fs,
+    fs::{self, File},
+    io::{
+        prelude::*,
+        LineWriter,
+    },
     sync::{Arc, Mutex},
     time::SystemTime,
 };
@@ -21,6 +25,8 @@ fn main() {
     let totals = paths.map(|path| fs::read_to_string(path).unwrap().lines().count());
     let grand_total: usize = totals.iter().sum();
 
+    let unsolved = Arc::new(Mutex::new(vec![]));
+
     let start_time = SystemTime::now();
 
     for (i, &path) in paths.iter().enumerate() {
@@ -30,10 +36,13 @@ fn main() {
             let line = translator::from_sudoku_exchange_bank_str(line).unwrap();
             let total_visited_clone = Arc::clone(&total_visited);
             let results_clone = Arc::clone(&results);
+            let unsolved_clone = Arc::clone(&unsolved);
 
             pool.execute(move || {
                 if solve_until_end(&line) {
                     results_clone.lock().unwrap()[i] += 1;
+                } else {
+                    unsolved_clone.lock().unwrap().push(line);
                 }
 
                 *total_visited_clone.lock().unwrap() += 1;
@@ -49,6 +58,12 @@ fn main() {
     pool.join();
 
     let end_time = start_time.elapsed();
+
+    let file = File::create("unsolved.txt").unwrap();
+    let mut file = LineWriter::new(file);
+
+    file.write_all(unsolved.lock().unwrap().join("\n").as_bytes()).unwrap();
+    file.flush().unwrap();
 
     match end_time {
         Ok(elapsed) => println!("Finished in {:.2}s", elapsed.as_secs_f64()),
