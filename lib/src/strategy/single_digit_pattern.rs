@@ -1,12 +1,12 @@
 use super::{
-    StrategyResult,
-    link::{make_link_map, LinkType},
     aic::{build_aics, AICType, AIC},
+    link::{make_link_map, LinkType},
+    StrategyResult,
 };
 use crate::grid::{Grid, Region, Unit};
 
 use LinkType::{StrongInUnit, WeakInUnit};
-use Unit::{Row, Col};
+use Unit::{Col, Row};
 
 enum PatternType {
     Skyscraper,
@@ -14,7 +14,7 @@ enum PatternType {
     TurbotFish,
 }
 
-use PatternType::{Skyscraper, TwoStringKite, TurbotFish};
+use PatternType::{Skyscraper, TurbotFish, TwoStringKite};
 
 pub fn find_single_digit_pattern(grid: &Grid) -> Option<StrategyResult> {
     let strong_link_map = make_link_map(grid, &[StrongInUnit]);
@@ -24,7 +24,7 @@ pub fn find_single_digit_pattern(grid: &Grid) -> Option<StrategyResult> {
         let name = match aic_result.get_aic_type() {
             AICType::Continuous => "Turbot Fish",
 
-            AICType::Discontinuous=> match get_pattern_type(grid, aic_result.get_aic()) {
+            AICType::Discontinuous => match get_pattern_type(grid, aic_result.get_aic()) {
                 Skyscraper => "Skyscraper",
                 TwoStringKite => "2-String Kite",
                 TurbotFish => "Turbot Fish",
@@ -53,14 +53,14 @@ fn get_pattern_type(grid: &Grid, aic: &AIC) -> PatternType {
             } else {
                 TurbotFish
             }
-        },
+        }
         (Some(Row(_)), Some(Col(_))) | (Some(Col(_)), Some(Row(_))) => {
             if middle.all_in_minigrid().is_some() {
                 TwoStringKite
             } else {
                 TurbotFish
             }
-        },
+        }
         _ => TurbotFish,
     }
 }
@@ -75,7 +75,6 @@ mod tests {
         let bd =
             "697000002001972063003006790912000607374260950865709024148693275709024006006807009";
         let mut grid = Grid::from_str(bd).unwrap();
-
 
         // remove turbot fishes
         grid.clear_candidate(&CellCandidate::from(8, 4, 1));
@@ -109,7 +108,6 @@ mod tests {
             "081020600042060089056800240693142758428357916175689324510036892230008460860200000";
         let mut grid = Grid::from_str(bd).unwrap();
 
-
         // remove turbot fish
         grid.clear_candidate(&CellCandidate::from(0, 8, 5));
         grid.clear_candidate(&CellCandidate::from(8, 5, 5));
@@ -117,9 +115,7 @@ mod tests {
         // remove skyscraper
         grid.clear_candidate(&CellCandidate::from(8, 8, 5));
 
-        let expected = vec![
-            CellCandidate::from(1, 3, 5),
-        ];
+        let expected = vec![CellCandidate::from(1, 3, 5)];
 
         let skyscraper = find_single_digit_pattern(&grid).unwrap();
         let to_place = skyscraper.get_to_place().clone();
@@ -153,9 +149,7 @@ mod tests {
         // remove skyscraper
         grid.clear_candidate(&CellCandidate::from(5, 2, 9));
 
-        let expected = vec![
-            CellCandidate::from(5, 3, 6),
-        ];
+        let expected = vec![CellCandidate::from(5, 3, 6)];
 
         let skyscraper = find_single_digit_pattern(&grid).unwrap();
         let to_place = skyscraper.get_to_place().clone();
