@@ -15,6 +15,7 @@ pub enum Strategy {
     Swordfish,
     RectangleElimination,
     SingleDigitPattern,
+    Medusa,
     AIC,
 }
 
@@ -35,6 +36,7 @@ impl Strategy {
             Swordfish,
             RectangleElimination,
             SingleDigitPattern,
+            Medusa,
             AIC,
         ]
     }
@@ -53,6 +55,7 @@ impl Strategy {
             Swordfish => find_swordfish,
             RectangleElimination => find_rectangle_elimination,
             SingleDigitPattern => find_single_digit_pattern,
+            Medusa => find_medusa,
             AIC => find_general_aic,
         }
     }
