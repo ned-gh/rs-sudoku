@@ -124,8 +124,8 @@ fn check_continuous(aic: &AIC, weak_link_map: &LinkMap) -> Option<StrategyResult
     let start = aic.first().unwrap();
     let end = aic.last().unwrap();
 
-    if !start.same_cell(end) {
-        return None;
+    if !weak_link_map.get(start).unwrap().contains(end) {
+        return None
     }
 
     let mut to_eliminate = vec![];
