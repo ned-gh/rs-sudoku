@@ -1,4 +1,3 @@
-mod aic;
 mod hidden_set;
 mod hidden_single;
 mod locked_candidates;
@@ -13,9 +12,10 @@ mod xwing;
 mod xywing;
 mod xyzwing;
 
+pub mod aic;
 pub mod link;
 
-pub use aic::*;
+pub use aic::find_general_aic;
 pub use hidden_set::*;
 pub use hidden_single::*;
 pub use locked_candidates::*;

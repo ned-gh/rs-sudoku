@@ -50,7 +50,7 @@ impl Strategy {
             XYZWing => find_xyzwing,
             Swordfish => find_swordfish,
             RectangleElimination => find_rectangle_elimination,
-            AIC => find_aic,
+            AIC => find_general_aic,
         }
     }
 }

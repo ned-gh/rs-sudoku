@@ -6,16 +6,16 @@ use super::{
 };
 use crate::grid::{CellCandidate, Grid};
 
-type AIC = Vec<CellCandidate>;
-
 use LinkType::{StrongInCell, StrongInUnit, WeakInCell, WeakInUnit};
 
-enum AICType {
+type AIC = Vec<CellCandidate>;
+
+pub enum AICType {
     Continuous,
     Discontinuous,
 }
 
-struct AICResult {
+pub struct AICResult {
     aic: AIC,
     aic_type: AICType,
     to_place: Vec<CellCandidate>,
@@ -23,7 +23,12 @@ struct AICResult {
 }
 
 impl AICResult {
-    fn from(aic: &AIC, aic_type: AICType, to_place: Vec<CellCandidate>, to_eliminate: Vec<CellCandidate>) -> AICResult {
+    pub fn from(
+        aic: &AIC,
+        aic_type: AICType,
+        to_place: Vec<CellCandidate>,
+        to_eliminate: Vec<CellCandidate>,
+    ) -> AICResult {
         AICResult {
             aic: aic.clone(),
             aic_type,
@@ -32,32 +37,32 @@ impl AICResult {
         }
     }
 
-    fn get_aic(&self) -> &AIC {
+    pub fn get_aic(&self) -> &AIC {
         &self.aic
     }
 
-    fn get_aic_type(&self) -> &AICType {
+    pub fn get_aic_type(&self) -> &AICType {
         &self.aic_type
     }
 
-    fn get_to_place(&self) -> &Vec<CellCandidate> {
+    pub fn get_to_place(&self) -> &Vec<CellCandidate> {
         &self.to_place
     }
 
-    fn get_to_place_owned(self) -> Vec<CellCandidate> {
+    pub fn get_to_place_owned(self) -> Vec<CellCandidate> {
         self.to_place
     }
 
-    fn get_to_eliminate(&self) -> &Vec<CellCandidate> {
+    pub fn get_to_eliminate(&self) -> &Vec<CellCandidate> {
         &self.to_eliminate
     }
 
-    fn get_to_eliminate_owned(self) -> Vec<CellCandidate> {
+    pub fn get_to_eliminate_owned(self) -> Vec<CellCandidate> {
         self.to_eliminate
     }
 }
 
-pub fn find_aic(grid: &Grid) -> Option<StrategyResult> {
+pub fn find_general_aic(grid: &Grid) -> Option<StrategyResult> {
     let strong_link_map = make_link_map(grid, &[StrongInCell, StrongInUnit]);
     let weak_link_map = make_link_map(grid, &[StrongInCell, StrongInUnit, WeakInCell, WeakInUnit]);
 
@@ -69,7 +74,7 @@ pub fn find_aic(grid: &Grid) -> Option<StrategyResult> {
                     vec![],
                     aic_result.get_to_eliminate_owned(),
                 ));
-            },
+            }
 
             AICType::Discontinuous => {
                 if !aic_result.get_to_place().is_empty() {
@@ -107,26 +112,18 @@ pub fn find_aic(grid: &Grid) -> Option<StrategyResult> {
                     vec![],
                     aic_result.get_to_eliminate_owned(),
                 ));
-            },
+            }
         }
     }
 
     None
 }
 
-fn check_aic(aic: &AIC, strong_link_map: &LinkMap, weak_link_map: &LinkMap) -> Option<AICResult> {
-    if let Some(res) = check_continuous(aic, &weak_link_map) {
-        return Some(res);
-    }
-
-    if let Some(res) = check_discontinuous(aic, &strong_link_map, &weak_link_map) {
-        return Some(res);
-    }
-
-    None
-}
-
-fn build_aics(strong_link_map: &LinkMap, weak_link_map: &LinkMap, max_length: usize) -> Option<AICResult> {
+pub fn build_aics(
+    strong_link_map: &LinkMap,
+    weak_link_map: &LinkMap,
+    max_length: usize,
+) -> Option<AICResult> {
     for start_node in strong_link_map.keys() {
         let mut to_visit = VecDeque::from([AIC::from([start_node.clone()])]);
 
@@ -172,12 +169,24 @@ fn build_aics(strong_link_map: &LinkMap, weak_link_map: &LinkMap, max_length: us
     None
 }
 
+fn check_aic(aic: &AIC, strong_link_map: &LinkMap, weak_link_map: &LinkMap) -> Option<AICResult> {
+    if let Some(res) = check_continuous(aic, weak_link_map) {
+        return Some(res);
+    }
+
+    if let Some(res) = check_discontinuous(aic, strong_link_map, weak_link_map) {
+        return Some(res);
+    }
+
+    None
+}
+
 fn check_continuous(aic: &AIC, weak_link_map: &LinkMap) -> Option<AICResult> {
     let start = aic.first().unwrap();
     let end = aic.last().unwrap();
 
     if !weak_link_map.get(start).unwrap().contains(end) {
-        return None
+        return None;
     }
 
     let mut to_eliminate = vec![];
@@ -261,29 +270,6 @@ fn check_discontinuous(
     }
 }
 
-// fn aic_to_string(aic: &AIC) -> String {
-//     let mut s = String::new();
-//
-//     for (i, cell) in aic.iter().enumerate() {
-//         s.push_str(&format!(
-//             "({})r{}c{}",
-//             cell.get_val(),
-//             cell.get_row(),
-//             cell.get_col()
-//         ));
-//
-//         if i < aic.len() - 1 {
-//             if i % 2 == 0 {
-//                 s.push('=');
-//             } else {
-//                 s.push('-');
-//             }
-//         }
-//     }
-//
-//     s
-// }
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -296,7 +282,7 @@ mod tests {
         if let Some(res) = check_aic(aic, strong_link_map, weak_link_map) {
             return Some(res);
         }
-        
+
         None
     }
 
