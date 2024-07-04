@@ -14,6 +14,7 @@ pub enum Strategy {
     XYZWing,
     Swordfish,
     RectangleElimination,
+    SingleDigitPattern,
     AIC,
 }
 
@@ -33,6 +34,7 @@ impl Strategy {
             XYZWing,
             Swordfish,
             RectangleElimination,
+            SingleDigitPattern,
             AIC,
         ]
     }
@@ -50,6 +52,7 @@ impl Strategy {
             XYZWing => find_xyzwing,
             Swordfish => find_swordfish,
             RectangleElimination => find_rectangle_elimination,
+            SingleDigitPattern => find_single_digit_pattern,
             AIC => find_general_aic,
         }
     }

@@ -11,6 +11,7 @@ mod swordfish;
 mod xwing;
 mod xywing;
 mod xyzwing;
+mod single_digit_pattern;
 
 pub mod aic;
 pub mod link;
@@ -29,3 +30,4 @@ pub use swordfish::*;
 pub use xwing::*;
 pub use xywing::*;
 pub use xyzwing::*;
+pub use single_digit_pattern::*;

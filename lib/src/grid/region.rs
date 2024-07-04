@@ -1,6 +1,6 @@
 use std::collections::{hash_set, HashSet};
 
-use super::{Cell, Unit};
+use super::{Cell, CellCandidate, Grid, Unit};
 use crate::util::BitSet;
 
 #[derive(Debug)]
@@ -20,6 +20,18 @@ impl Region {
         cells.extend(cells_slice.iter().cloned());
 
         Region { cells }
+    }
+
+    pub fn from_candidates(grid: &Grid, cell_candidates: &[CellCandidate]) -> Region {
+        let mut reg = Region::new();
+
+        for cell_candidate in cell_candidates {
+            let (r, c, _) = cell_candidate.as_tuple();
+
+            reg.insert(Cell::from(r, c, grid.get_candidates(r, c)));
+        }
+
+        reg
     }
 
     pub fn len(&self) -> u32 {

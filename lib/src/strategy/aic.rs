@@ -8,7 +8,7 @@ use crate::grid::{CellCandidate, Grid};
 
 use LinkType::{StrongInCell, StrongInUnit, WeakInCell, WeakInUnit};
 
-type AIC = Vec<CellCandidate>;
+pub type AIC = Vec<CellCandidate>;
 
 pub enum AICType {
     Continuous,
