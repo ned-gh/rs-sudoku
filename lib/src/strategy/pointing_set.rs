@@ -1,6 +1,6 @@
 use super::{
-    StrategyResult,
     highlight::{Highlight, HighlightColor},
+    StrategyResult,
 };
 use crate::grid::{CellCandidate, Grid, Region, Unit, UnitType};
 

@@ -1,8 +1,8 @@
 use super::{
-    StrategyResult,
     highlight::{Highlight, HighlightColor},
+    StrategyResult,
 };
-use crate::grid::{CellCandidate, Region, Grid, Unit, UnitType};
+use crate::grid::{CellCandidate, Grid, Region, Unit, UnitType};
 
 pub fn find_locked_candidates(grid: &Grid) -> Option<StrategyResult> {
     for val in 1..10 {

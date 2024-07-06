@@ -1,10 +1,10 @@
 use super::{
-    aic::{build_aics, AICType, AIC, AICResult},
+    aic::{build_aics, AICResult, AICType, AIC},
+    highlight::{Highlight, HighlightColor},
     link::{make_link_map, LinkType},
     StrategyResult,
-    highlight::{Highlight, HighlightColor},
 };
-use crate::grid::{Grid, Region, Unit, CellCandidate};
+use crate::grid::{CellCandidate, Grid, Region, Unit};
 
 use LinkType::{StrongInUnit, WeakInUnit};
 use Unit::{Col, Row};
@@ -18,9 +18,9 @@ enum PatternType {
 impl PatternType {
     fn to_str(&self) -> &str {
         match self {
-            Skyscraper    => "Skyscraper",
+            Skyscraper => "Skyscraper",
             TwoStringKite => "2-String Kite",
-            TurbotFish    => "Turbot Fish",
+            TurbotFish => "Turbot Fish",
         }
     }
 }
@@ -74,7 +74,11 @@ fn get_pattern_type(grid: &Grid, aic: &AIC) -> PatternType {
     }
 }
 
-fn make_higlights(grid: &Grid, pattern_type: &PatternType, aic_result: &AICResult) -> Vec<Highlight> {
+fn make_higlights(
+    grid: &Grid,
+    pattern_type: &PatternType,
+    aic_result: &AICResult,
+) -> Vec<Highlight> {
     let mut highlights = match pattern_type {
         TurbotFish => aic_result.make_highlights(true, true),
         _ => aic_result.make_highlights(false, false),

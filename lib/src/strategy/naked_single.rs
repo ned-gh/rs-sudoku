@@ -1,6 +1,6 @@
 use super::{
-    StrategyResult,
     highlight::{Highlight, HighlightColor},
+    StrategyResult,
 };
 use crate::grid::{CellCandidate, Grid};
 
@@ -32,9 +32,10 @@ pub fn find_naked_single(grid: &Grid) -> Option<StrategyResult> {
 }
 
 fn make_highlights(singles: &Vec<CellCandidate>) -> Vec<Highlight> {
-    singles.iter().map(|cc| {
-            Highlight::new_candidate_hl(cc, HighlightColor::NoteFg, HighlightColor::NoteBg)
-    }).collect()
+    singles
+        .iter()
+        .map(|cc| Highlight::new_candidate_hl(cc, HighlightColor::NoteFg, HighlightColor::NoteBg))
+        .collect()
 }
 
 #[cfg(test)]

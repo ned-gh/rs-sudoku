@@ -1,10 +1,10 @@
 use itertools::Itertools;
 
 use super::{
-    StrategyResult,
     highlight::{Highlight, HighlightColor},
+    StrategyResult,
 };
-use crate::grid::{CellCandidate, Region, Grid, UnitType};
+use crate::grid::{CellCandidate, Grid, Region, UnitType};
 use crate::util::BitSet;
 
 use UnitType::{Col, MiniGrid, Row};
@@ -53,7 +53,11 @@ pub fn find_hidden_set(grid: &Grid) -> Option<StrategyResult> {
     None
 }
 
-fn make_highlights(cells: &Region, candidate_bitset: &BitSet, to_eliminate: &Vec<CellCandidate>) -> Vec<Highlight> {
+fn make_highlights(
+    cells: &Region,
+    candidate_bitset: &BitSet,
+    to_eliminate: &Vec<CellCandidate>,
+) -> Vec<Highlight> {
     let mut highlights = vec![];
 
     for cell in cells.iter() {
@@ -67,11 +71,11 @@ fn make_highlights(cells: &Region, candidate_bitset: &BitSet, to_eliminate: &Vec
     }
 
     for cell_candidate in to_eliminate.iter() {
-            highlights.push(Highlight::new_candidate_hl(
-                cell_candidate,
-                HighlightColor::ElimFg,
-                HighlightColor::ElimBg,
-            ));
+        highlights.push(Highlight::new_candidate_hl(
+            cell_candidate,
+            HighlightColor::ElimFg,
+            HighlightColor::ElimBg,
+        ));
     }
 
     highlights

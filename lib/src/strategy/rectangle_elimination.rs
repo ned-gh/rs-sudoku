@@ -1,8 +1,8 @@
 use itertools::Itertools;
 
 use super::{
-    StrategyResult,
     highlight::{Highlight, HighlightColor},
+    StrategyResult,
 };
 use crate::grid::{get_minigrid_n_from_coords, Cell, CellCandidate, Grid, Region, UnitType};
 
@@ -134,7 +134,13 @@ fn wings_eliminate_minigrid(
     )
 }
 
-fn make_highlights(hinge: &Cell, wing: &Cell, other_wing: &Cell, val: u32, place: bool) -> Vec<Highlight> {
+fn make_highlights(
+    hinge: &Cell,
+    wing: &Cell,
+    other_wing: &Cell,
+    val: u32,
+    place: bool,
+) -> Vec<Highlight> {
     if place {
         vec![
             Highlight::new_candidate_hl(

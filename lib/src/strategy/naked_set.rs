@@ -1,10 +1,10 @@
 use itertools::Itertools;
 
 use super::{
-    StrategyResult,
     highlight::{Highlight, HighlightColor},
+    StrategyResult,
 };
-use crate::grid::{CellCandidate, Cell, Grid, Region, UnitType};
+use crate::grid::{Cell, CellCandidate, Grid, Region, UnitType};
 use crate::util::BitSet;
 
 use UnitType::{Col, MiniGrid, Row};

@@ -1,9 +1,9 @@
 use std::collections::VecDeque;
 
 use super::{
+    highlight::{Highlight, HighlightColor},
     link::{make_link_map, LinkMap, LinkType},
     StrategyResult,
-    highlight::{Highlight, HighlightColor},
 };
 use crate::grid::{CellCandidate, Grid};
 

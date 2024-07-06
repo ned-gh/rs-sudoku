@@ -1,9 +1,11 @@
+use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::vec;
 
 use super::{Cell, CellCandidate, Region, UnitType};
 use crate::util::BitSet;
 
+#[derive(Serialize, Deserialize)]
 pub struct Grid {
     placed: Vec<u32>,
     candidates: Vec<BitSet>,

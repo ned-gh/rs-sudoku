@@ -3,9 +3,9 @@ use itertools::Itertools;
 use std::collections::{HashMap, HashSet};
 
 use super::{
+    highlight::{Highlight, HighlightColor},
     link::{make_link_map, LinkMap, LinkType},
     StrategyResult,
-    highlight::{Highlight, HighlightColor},
 };
 use crate::grid::{get_minigrid_n_from_coords, CellCandidate, Grid};
 
@@ -205,7 +205,10 @@ fn twice_in_a_cell(cell_color_map: &CellColorMap, color_map: &ColorMap) -> Optio
     None
 }
 
-fn twice_in_a_unit(color_map: &ColorMap, inverse_color_map: &InverseColorMap) -> Option<StrategyResult> {
+fn twice_in_a_unit(
+    color_map: &ColorMap,
+    inverse_color_map: &InverseColorMap,
+) -> Option<StrategyResult> {
     for (color, cell_candidates) in inverse_color_map.iter() {
         let mut unit_counts = [[[0; 9]; 3]; 10];
 
@@ -236,7 +239,11 @@ fn twice_in_a_unit(color_map: &ColorMap, inverse_color_map: &InverseColorMap) ->
     None
 }
 
-fn two_colors_in_cell(grid: &Grid, color_map: &ColorMap, cell_color_map: &CellColorMap) -> Option<StrategyResult> {
+fn two_colors_in_cell(
+    grid: &Grid,
+    color_map: &ColorMap,
+    cell_color_map: &CellColorMap,
+) -> Option<StrategyResult> {
     let mut to_eliminate = vec![];
 
     for (&(r, c), val_colors) in cell_color_map.iter() {
@@ -430,19 +437,29 @@ fn cell_emptied_by_color(
     None
 }
 
-fn make_highlights(color_map: &ColorMap, elim_color: Option<&Color>, to_eliminate: Option<&Vec<CellCandidate>>) -> Vec<Highlight> {
+fn make_highlights(
+    color_map: &ColorMap,
+    elim_color: Option<&Color>,
+    to_eliminate: Option<&Vec<CellCandidate>>,
+) -> Vec<Highlight> {
     let (color_a_hlc, color_b_hlc) = match elim_color {
         Some(color) => match color {
-            ColorA =>
-                ((HighlightColor::ElimFg, HighlightColor::ElimBg),
-                 (HighlightColor::NoteFg, HighlightColor::NoteBg)),
-            ColorB =>
-                ((HighlightColor::NoteFg, HighlightColor::NoteBg),
-                 (HighlightColor::ElimFg, HighlightColor::ElimBg)),
+            ColorA => (
+                (HighlightColor::ElimFg, HighlightColor::ElimBg),
+                (HighlightColor::NoteFg, HighlightColor::NoteBg),
+            ),
+            ColorB => (
+                (HighlightColor::NoteFg, HighlightColor::NoteBg),
+                (HighlightColor::ElimFg, HighlightColor::ElimBg),
+            ),
         },
-        None => 
-            ((HighlightColor::NoteFg, HighlightColor::NoteBg),
-             (HighlightColor::NoteNegativeFg, HighlightColor::NoteNegativeBg)),
+        None => (
+            (HighlightColor::NoteFg, HighlightColor::NoteBg),
+            (
+                HighlightColor::NoteNegativeFg,
+                HighlightColor::NoteNegativeBg,
+            ),
+        ),
     };
 
     let mut highlights = vec![];
@@ -453,11 +470,7 @@ fn make_highlights(color_map: &ColorMap, elim_color: Option<&Color>, to_eliminat
             ColorB => (color_b_hlc.0, color_b_hlc.1),
         };
 
-        highlights.push(Highlight::new_candidate_hl(
-            cell_candidate,
-            fg,
-            bg,
-        ));
+        highlights.push(Highlight::new_candidate_hl(cell_candidate, fg, bg));
     }
 
     if let Some(elim) = to_eliminate {
