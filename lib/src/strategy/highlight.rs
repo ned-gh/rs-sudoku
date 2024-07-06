@@ -1,4 +1,5 @@
 use std::string::ToString;
+use serde::Serialize;
 
 use crate::grid::CellCandidate;
 
@@ -45,7 +46,7 @@ impl ToString for HighlightColor {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub enum Highlight {
     CellHighlight{row: u32, col: u32, bg: String},
     CandidateHighlight{cell_candidate: CellCandidate, fg: String, bg: String},

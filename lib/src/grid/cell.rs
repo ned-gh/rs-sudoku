@@ -1,6 +1,8 @@
+use serde::Serialize;
+
 use crate::util::BitSet;
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize)]
 pub struct CellCandidate {
     row: u32,
     col: u32,

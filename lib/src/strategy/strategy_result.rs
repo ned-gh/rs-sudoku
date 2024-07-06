@@ -1,7 +1,9 @@
+use serde::Serialize;
+
 use super::highlight::Highlight;
 use crate::grid::CellCandidate;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct StrategyResult {
     name: String,
     to_place: Vec<CellCandidate>,
