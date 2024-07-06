@@ -12,7 +12,7 @@ pub struct Grid {
 }
 
 #[allow(dead_code)]
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub enum GridError {
     InvalidCharacter(char),
     InvalidGridSize(usize),
