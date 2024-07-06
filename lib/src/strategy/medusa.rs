@@ -5,6 +5,7 @@ use std::collections::{HashMap, HashSet};
 use super::{
     link::{make_link_map, LinkMap, LinkType},
     StrategyResult,
+    highlight::{Highlight, HighlightColor},
 };
 use crate::grid::{get_minigrid_n_from_coords, CellCandidate, Grid};
 
@@ -46,12 +47,12 @@ pub fn find_medusa(grid: &Grid) -> Option<StrategyResult> {
         let inverse_color_map = get_inverse_color_map(&color_map);
 
         // rule 2
-        if let Some(res) = twice_in_a_unit(&inverse_color_map) {
+        if let Some(res) = twice_in_a_unit(&color_map, &inverse_color_map) {
             return Some(res);
         }
 
         // rule 3
-        if let Some(res) = two_colors_in_cell(grid, &cell_color_map) {
+        if let Some(res) = two_colors_in_cell(grid, &color_map, &cell_color_map) {
             return Some(res);
         }
 
@@ -190,10 +191,13 @@ fn twice_in_a_cell(cell_color_map: &CellColorMap, color_map: &ColorMap) -> Optio
                 }
             }
 
+            let highlights = make_highlights(color_map, Some(&twice_color), None);
+
             return Some(StrategyResult::from(
                 "Medusa - Twice in a Cell",
                 to_place,
                 vec![],
+                highlights,
             ));
         }
     }
@@ -201,7 +205,7 @@ fn twice_in_a_cell(cell_color_map: &CellColorMap, color_map: &ColorMap) -> Optio
     None
 }
 
-fn twice_in_a_unit(inverse_color_map: &InverseColorMap) -> Option<StrategyResult> {
+fn twice_in_a_unit(color_map: &ColorMap, inverse_color_map: &InverseColorMap) -> Option<StrategyResult> {
     for (color, cell_candidates) in inverse_color_map.iter() {
         let mut unit_counts = [[[0; 9]; 3]; 10];
 
@@ -217,10 +221,13 @@ fn twice_in_a_unit(inverse_color_map: &InverseColorMap) -> Option<StrategyResult
 
                 let to_place = inverse_color_map.get(&color.opposite()).unwrap().clone();
 
+                let highlights = make_highlights(color_map, Some(color), None);
+
                 return Some(StrategyResult::from(
                     "Medusa - Twice in a Unit",
                     to_place,
                     vec![],
+                    highlights,
                 ));
             }
         }
@@ -229,7 +236,7 @@ fn twice_in_a_unit(inverse_color_map: &InverseColorMap) -> Option<StrategyResult
     None
 }
 
-fn two_colors_in_cell(grid: &Grid, cell_color_map: &CellColorMap) -> Option<StrategyResult> {
+fn two_colors_in_cell(grid: &Grid, color_map: &ColorMap, cell_color_map: &CellColorMap) -> Option<StrategyResult> {
     let mut to_eliminate = vec![];
 
     for (&(r, c), val_colors) in cell_color_map.iter() {
@@ -247,10 +254,13 @@ fn two_colors_in_cell(grid: &Grid, cell_color_map: &CellColorMap) -> Option<Stra
     if to_eliminate.is_empty() {
         None
     } else {
+        let highlights = make_highlights(color_map, None, Some(&to_eliminate));
+
         Some(StrategyResult::from(
             "Medusa - Two Colors in a Cell",
             vec![],
             to_eliminate,
+            highlights,
         ))
     }
 }
@@ -296,10 +306,15 @@ fn two_colors_elsewhere(grid: &Grid, color_map: &ColorMap) -> Option<StrategyRes
     if to_eliminate.is_empty() {
         None
     } else {
+        let to_eliminate = to_eliminate.into_iter().collect();
+
+        let highlights = make_highlights(color_map, None, Some(&to_eliminate));
+
         Some(StrategyResult::from(
             "Medusa - Two Colors Elsewhere",
             vec![],
-            to_eliminate.into_iter().collect(),
+            to_eliminate,
+            highlights,
         ))
     }
 }
@@ -339,10 +354,13 @@ fn two_colors_unit_cell(
     if to_eliminate.is_empty() {
         None
     } else {
+        let highlights = make_highlights(color_map, None, Some(&to_eliminate));
+
         Some(StrategyResult::from(
             "Medusa - Two Colors Unit + Cell",
             vec![],
             to_eliminate,
+            highlights,
         ))
     }
 }
@@ -392,16 +410,67 @@ fn cell_emptied_by_color(
 
                 let to_place = inverse_color_map.get(&opposite_color).unwrap().clone();
 
+                let mut highlights = make_highlights(color_map, Some(color), None);
+                highlights.push(Highlight::new_cell_hl(
+                    cell.get_row(),
+                    cell.get_col(),
+                    HighlightColor::Cyan,
+                ));
+
                 return Some(StrategyResult::from(
                     "Medusa - Cell Emptied by Color",
                     to_place,
                     vec![],
+                    highlights,
                 ));
             }
         }
     }
 
     None
+}
+
+fn make_highlights(color_map: &ColorMap, elim_color: Option<&Color>, to_eliminate: Option<&Vec<CellCandidate>>) -> Vec<Highlight> {
+    let (color_a_hlc, color_b_hlc) = match elim_color {
+        Some(color) => match color {
+            ColorA =>
+                ((HighlightColor::ElimFg, HighlightColor::ElimBg),
+                 (HighlightColor::NoteFg, HighlightColor::NoteBg)),
+            ColorB =>
+                ((HighlightColor::NoteFg, HighlightColor::NoteBg),
+                 (HighlightColor::ElimFg, HighlightColor::ElimBg)),
+        },
+        None => 
+            ((HighlightColor::NoteFg, HighlightColor::NoteBg),
+             (HighlightColor::NoteNegativeFg, HighlightColor::NoteNegativeBg)),
+    };
+
+    let mut highlights = vec![];
+
+    for (cell_candidate, color) in color_map.iter() {
+        let (fg, bg) = match color {
+            ColorA => (color_a_hlc.0, color_a_hlc.1),
+            ColorB => (color_b_hlc.0, color_b_hlc.1),
+        };
+
+        highlights.push(Highlight::new_candidate_hl(
+            cell_candidate,
+            fg,
+            bg,
+        ));
+    }
+
+    if let Some(elim) = to_eliminate {
+        for cell_candidate in elim.iter() {
+            highlights.push(Highlight::new_candidate_hl(
+                cell_candidate,
+                HighlightColor::ElimFg,
+                HighlightColor::ElimBg,
+            ));
+        }
+    }
+
+    highlights
 }
 
 #[cfg(test)]
@@ -493,7 +562,7 @@ mod tests {
             let (color_map, _) = color_component(start, &strong_link_map);
             let inverse_color_map = get_inverse_color_map(&color_map);
 
-            if let Some(res) = twice_in_a_unit(&inverse_color_map) {
+            if let Some(res) = twice_in_a_unit(&color_map, &inverse_color_map) {
                 let mut to_place = res.get_to_place().clone();
                 to_place.sort();
 
@@ -523,9 +592,9 @@ mod tests {
         let mut results = vec![];
 
         for start in component_starts.iter() {
-            let (_, cell_color_map) = color_component(start, &strong_link_map);
+            let (color_map, cell_color_map) = color_component(start, &strong_link_map);
 
-            if let Some(res) = two_colors_in_cell(&grid, &cell_color_map) {
+            if let Some(res) = two_colors_in_cell(&grid, &color_map, &cell_color_map) {
                 results.push(res.get_to_eliminate().clone());
             }
         }

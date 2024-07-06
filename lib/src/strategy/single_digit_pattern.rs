@@ -1,9 +1,10 @@
 use super::{
-    aic::{build_aics, AICType, AIC},
+    aic::{build_aics, AICType, AIC, AICResult},
     link::{make_link_map, LinkType},
     StrategyResult,
+    highlight::{Highlight, HighlightColor},
 };
-use crate::grid::{Grid, Region, Unit};
+use crate::grid::{Grid, Region, Unit, CellCandidate};
 
 use LinkType::{StrongInUnit, WeakInUnit};
 use Unit::{Col, Row};
@@ -14,6 +15,16 @@ enum PatternType {
     TurbotFish,
 }
 
+impl PatternType {
+    fn to_str(&self) -> &str {
+        match self {
+            Skyscraper    => "Skyscraper",
+            TwoStringKite => "2-String Kite",
+            TurbotFish    => "Turbot Fish",
+        }
+    }
+}
+
 use PatternType::{Skyscraper, TurbotFish, TwoStringKite};
 
 pub fn find_single_digit_pattern(grid: &Grid) -> Option<StrategyResult> {
@@ -21,20 +32,18 @@ pub fn find_single_digit_pattern(grid: &Grid) -> Option<StrategyResult> {
     let weak_link_map = make_link_map(grid, &[StrongInUnit, WeakInUnit]);
 
     if let Some(aic_result) = build_aics(&strong_link_map, &weak_link_map, 4) {
-        let name = match aic_result.get_aic_type() {
-            AICType::Continuous => "Turbot Fish",
-
-            AICType::Discontinuous => match get_pattern_type(grid, aic_result.get_aic()) {
-                Skyscraper => "Skyscraper",
-                TwoStringKite => "2-String Kite",
-                TurbotFish => "Turbot Fish",
-            },
+        let pattern_type = match aic_result.get_aic_type() {
+            AICType::Continuous => TurbotFish,
+            AICType::Discontinuous => get_pattern_type(grid, aic_result.get_aic()),
         };
 
+        let highlights = make_higlights(grid, &pattern_type, &aic_result);
+
         return Some(StrategyResult::from(
-            name,
+            pattern_type.to_str(),
             aic_result.get_to_place().clone(),
             aic_result.get_to_eliminate().clone(),
+            highlights,
         ));
     }
 
@@ -63,6 +72,39 @@ fn get_pattern_type(grid: &Grid, aic: &AIC) -> PatternType {
         }
         _ => TurbotFish,
     }
+}
+
+fn make_higlights(grid: &Grid, pattern_type: &PatternType, aic_result: &AICResult) -> Vec<Highlight> {
+    let mut highlights = match pattern_type {
+        TurbotFish => aic_result.make_highlights(true, true),
+        _ => aic_result.make_highlights(false, false),
+    };
+
+    for cell_candidate in aic_result.get_to_eliminate().iter() {
+        highlights.push(Highlight::new_candidate_hl(
+            cell_candidate,
+            HighlightColor::ElimFg,
+            HighlightColor::ElimBg,
+        ));
+    }
+
+    for cell_candidate in aic_result.get_to_place().iter() {
+        let (r, c, val) = cell_candidate.as_tuple();
+
+        for elim_val in grid.get_candidates(r, c).iter() {
+            if elim_val == val {
+                continue;
+            }
+
+            highlights.push(Highlight::new_candidate_hl(
+                &CellCandidate::from(r, c, elim_val),
+                HighlightColor::ElimFg,
+                HighlightColor::ElimBg,
+            ));
+        }
+    }
+
+    highlights
 }
 
 #[cfg(test)]

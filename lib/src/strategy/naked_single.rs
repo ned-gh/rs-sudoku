@@ -1,4 +1,7 @@
-use super::StrategyResult;
+use super::{
+    StrategyResult,
+    highlight::{Highlight, HighlightColor},
+};
 use crate::grid::{CellCandidate, Grid};
 
 pub fn find_naked_single(grid: &Grid) -> Option<StrategyResult> {
@@ -17,8 +20,21 @@ pub fn find_naked_single(grid: &Grid) -> Option<StrategyResult> {
     if singles.is_empty() {
         None
     } else {
-        Some(StrategyResult::from("Naked Single", singles, vec![]))
+        let highlights = make_highlights(&singles);
+
+        Some(StrategyResult::from(
+            "Naked Single",
+            singles,
+            vec![],
+            highlights,
+        ))
     }
+}
+
+fn make_highlights(singles: &Vec<CellCandidate>) -> Vec<Highlight> {
+    singles.iter().map(|cc| {
+            Highlight::new_candidate_hl(cc, HighlightColor::NoteFg, HighlightColor::NoteBg)
+    }).collect()
 }
 
 #[cfg(test)]

@@ -1,7 +1,10 @@
 use itertools::Itertools;
 
-use super::StrategyResult;
-use crate::grid::{CellCandidate, Grid, UnitType};
+use super::{
+    StrategyResult,
+    highlight::{Highlight, HighlightColor},
+};
+use crate::grid::{CellCandidate, Region, Grid, UnitType};
 use crate::util::BitSet;
 
 use UnitType::{Col, MiniGrid, Row};
@@ -33,7 +36,14 @@ pub fn find_hidden_set(grid: &Grid) -> Option<StrategyResult> {
                     }
 
                     if !to_eliminate.is_empty() {
-                        return Some(StrategyResult::from("Hidden Set", vec![], to_eliminate));
+                        let highlights = make_highlights(&cells, &candidate_bitset, &to_eliminate);
+
+                        return Some(StrategyResult::from(
+                            "Hidden Set",
+                            vec![],
+                            to_eliminate,
+                            highlights,
+                        ));
                     }
                 }
             }
@@ -41,6 +51,30 @@ pub fn find_hidden_set(grid: &Grid) -> Option<StrategyResult> {
     }
 
     None
+}
+
+fn make_highlights(cells: &Region, candidate_bitset: &BitSet, to_eliminate: &Vec<CellCandidate>) -> Vec<Highlight> {
+    let mut highlights = vec![];
+
+    for cell in cells.iter() {
+        for val in candidate_bitset.iter() {
+            highlights.push(Highlight::new_candidate_hl(
+                &CellCandidate::from_cell(cell, val),
+                HighlightColor::NoteFg,
+                HighlightColor::NoteBg,
+            ));
+        }
+    }
+
+    for cell_candidate in to_eliminate.iter() {
+            highlights.push(Highlight::new_candidate_hl(
+                cell_candidate,
+                HighlightColor::ElimFg,
+                HighlightColor::ElimBg,
+            ));
+    }
+
+    highlights
 }
 
 #[cfg(test)]

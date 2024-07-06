@@ -1,6 +1,9 @@
 use itertools::Itertools;
 
-use super::StrategyResult;
+use super::{
+    StrategyResult,
+    highlight::{Highlight, HighlightColor},
+};
 use crate::grid::{CellCandidate, Grid, Region, UnitType};
 
 use UnitType::{Col, Row};
@@ -49,19 +52,52 @@ pub fn find_swordfish(grid: &Grid) -> Option<StrategyResult> {
                     continue;
                 }
 
+                let to_eliminate = other
+                    .iter()
+                    .map(|cell| CellCandidate::from_cell(cell, val))
+                    .collect();
+
+                let highlights = make_highlights(&cells, val, &to_eliminate);
+
                 return Some(StrategyResult::from(
                     "Swordfish",
                     vec![],
-                    other
-                        .iter()
-                        .map(|cell| CellCandidate::from_cell(cell, val))
-                        .collect(),
+                    to_eliminate,
+                    highlights,
                 ));
             }
         }
     }
 
     None
+}
+
+fn make_highlights(cells: &Region, val: u32, to_eliminate: &Vec<CellCandidate>) -> Vec<Highlight> {
+    let mut highlights = vec![];
+
+    for cell in cells.iter() {
+        highlights.push(Highlight::new_cell_hl(
+            cell.get_row(),
+            cell.get_col(),
+            HighlightColor::Orange,
+        ));
+
+        highlights.push(Highlight::new_candidate_hl(
+            &CellCandidate::from_cell(cell, val),
+            HighlightColor::NoteFg,
+            HighlightColor::NoteBg,
+        ));
+    }
+
+    for cell_candidate in to_eliminate.iter() {
+        highlights.push(Highlight::new_candidate_hl(
+            cell_candidate,
+            HighlightColor::ElimFg,
+            HighlightColor::ElimBg,
+        ));
+    }
+
+    highlights
 }
 
 #[cfg(test)]

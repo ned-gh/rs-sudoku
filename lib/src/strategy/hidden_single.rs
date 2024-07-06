@@ -1,4 +1,7 @@
-use super::StrategyResult;
+use super::{
+    StrategyResult,
+    highlight::{Highlight, HighlightColor},
+};
 use crate::grid::{CellCandidate, Grid, UnitType};
 
 use UnitType::{Col, MiniGrid, Row};
@@ -22,8 +25,21 @@ pub fn find_hidden_single(grid: &Grid) -> Option<StrategyResult> {
     if singles.is_empty() {
         None
     } else {
-        Some(StrategyResult::from("Hidden Single", singles, vec![]))
+        let highlights = make_highlights(&singles);
+
+        Some(StrategyResult::from(
+            "Hidden Single",
+            singles,
+            vec![],
+            highlights
+        ))
     }
+}
+
+fn make_highlights(singles: &Vec<CellCandidate>) -> Vec<Highlight> {
+    singles.iter().map(|cc| {
+            Highlight::new_candidate_hl(cc, HighlightColor::NoteFg, HighlightColor::NoteBg)
+    }).collect()
 }
 
 #[cfg(test)]

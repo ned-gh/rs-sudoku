@@ -16,6 +16,7 @@ mod xyzwing;
 
 pub mod aic;
 pub mod link;
+pub mod highlight;
 
 pub use aic::find_general_aic;
 pub use hidden_set::*;

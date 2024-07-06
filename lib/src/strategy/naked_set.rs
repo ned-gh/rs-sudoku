@@ -1,7 +1,10 @@
 use itertools::Itertools;
 
-use super::StrategyResult;
-use crate::grid::{CellCandidate, Grid, Region, UnitType};
+use super::{
+    StrategyResult,
+    highlight::{Highlight, HighlightColor},
+};
+use crate::grid::{CellCandidate, Cell, Grid, Region, UnitType};
 use crate::util::BitSet;
 
 use UnitType::{Col, MiniGrid, Row};
@@ -41,13 +44,44 @@ pub fn find_naked_set(grid: &Grid) -> Option<StrategyResult> {
                         }
                     }
 
-                    return Some(StrategyResult::from("Naked Set", vec![], to_eliminate));
+                    let highlights = make_highlights(&combination, &to_eliminate);
+
+                    return Some(StrategyResult::from(
+                        "Naked Set",
+                        vec![],
+                        to_eliminate,
+                        highlights,
+                    ));
                 }
             }
         }
     }
 
     None
+}
+
+fn make_highlights(combination: &Vec<Cell>, to_eliminate: &Vec<CellCandidate>) -> Vec<Highlight> {
+    let mut highlights = vec![];
+
+    for cell in combination.iter() {
+        for val in cell.get_candidates().iter() {
+            highlights.push(Highlight::new_candidate_hl(
+                &CellCandidate::from_cell(cell, val),
+                HighlightColor::NoteFg,
+                HighlightColor::NoteBg,
+            ));
+        }
+    }
+
+    for cell_candidate in to_eliminate.iter() {
+        highlights.push(Highlight::new_candidate_hl(
+            cell_candidate,
+            HighlightColor::ElimFg,
+            HighlightColor::ElimBg,
+        ));
+    }
+
+    highlights
 }
 
 #[cfg(test)]

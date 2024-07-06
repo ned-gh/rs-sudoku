@@ -3,6 +3,7 @@ use std::collections::VecDeque;
 use super::{
     link::{make_link_map, LinkMap, LinkType},
     StrategyResult,
+    highlight::{Highlight, HighlightColor},
 };
 use crate::grid::{CellCandidate, Grid};
 
@@ -60,6 +61,52 @@ impl AICResult {
     pub fn get_to_eliminate_owned(self) -> Vec<CellCandidate> {
         self.to_eliminate
     }
+
+    pub fn make_highlights(&self, alternate_color: bool, make_lines: bool) -> Vec<Highlight> {
+        let mut highlights = vec![];
+
+        let aic = self.get_aic();
+
+        for i in 0..aic.len() {
+            let next_idx = if i < aic.len() - 1 { i + 1 } else { 0 };
+
+            let current = &aic[i];
+            let next = &aic[next_idx];
+
+            if make_lines && !current.same_cell(next) {
+                highlights.push(Highlight::new_line_hl(
+                    current,
+                    next,
+                    HighlightColor::DefaultLineFg,
+                    (i % 2) == 1,
+                ));
+            }
+
+            if (i % 2) == 0 {
+                highlights.push(Highlight::new_candidate_hl(
+                    current,
+                    if alternate_color {
+                        HighlightColor::NoteNegativeFg
+                    } else {
+                        HighlightColor::NoteFg
+                    },
+                    if alternate_color {
+                        HighlightColor::NoteNegativeBg
+                    } else {
+                        HighlightColor::NoteBg
+                    },
+                ));
+            } else {
+                highlights.push(Highlight::new_candidate_hl(
+                    current,
+                    HighlightColor::NoteFg,
+                    HighlightColor::NoteBg,
+                ));
+            }
+        }
+
+        highlights
+    }
 }
 
 pub fn find_general_aic(grid: &Grid) -> Option<StrategyResult> {
@@ -67,12 +114,15 @@ pub fn find_general_aic(grid: &Grid) -> Option<StrategyResult> {
     let weak_link_map = make_link_map(grid, &[StrongInCell, StrongInUnit, WeakInCell, WeakInUnit]);
 
     if let Some(aic_result) = build_aics(&strong_link_map, &weak_link_map, 12) {
+        let highlights = make_highlights(grid, &aic_result);
+
         match aic_result.get_aic_type() {
             AICType::Continuous => {
                 return Some(StrategyResult::from(
                     "Continuous AIC loop",
                     vec![],
                     aic_result.get_to_eliminate_owned(),
+                    highlights,
                 ));
             }
 
@@ -82,6 +132,7 @@ pub fn find_general_aic(grid: &Grid) -> Option<StrategyResult> {
                         "Discontinuous Nice Loop",
                         aic_result.get_to_place_owned(),
                         vec![],
+                        highlights,
                     ));
                 }
 
@@ -111,6 +162,7 @@ pub fn find_general_aic(grid: &Grid) -> Option<StrategyResult> {
                     name,
                     vec![],
                     aic_result.get_to_eliminate_owned(),
+                    highlights,
                 ));
             }
         }
@@ -268,6 +320,36 @@ fn check_discontinuous(
             to_eliminate,
         ))
     }
+}
+
+fn make_highlights(grid: &Grid, aic_result: &AICResult) -> Vec<Highlight> {
+    let mut highlights = aic_result.make_highlights(true, true);
+
+    for cell_candidate in aic_result.get_to_eliminate().iter() {
+        highlights.push(Highlight::new_candidate_hl(
+            cell_candidate,
+            HighlightColor::ElimFg,
+            HighlightColor::ElimBg,
+        ));
+    }
+
+    for cell_candidate in aic_result.get_to_place().iter() {
+        let (r, c, val) = cell_candidate.as_tuple();
+
+        for elim_val in grid.get_candidates(r, c).iter() {
+            if elim_val == val {
+                continue;
+            }
+
+            highlights.push(Highlight::new_candidate_hl(
+                &CellCandidate::from(r, c, elim_val),
+                HighlightColor::ElimFg,
+                HighlightColor::ElimBg,
+            ));
+        }
+    }
+
+    highlights
 }
 
 #[cfg(test)]

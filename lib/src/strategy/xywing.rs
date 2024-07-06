@@ -1,7 +1,10 @@
 use itertools::Itertools;
 
-use super::StrategyResult;
-use crate::grid::{CellCandidate, Grid};
+use super::{
+    StrategyResult,
+    highlight::{Highlight, HighlightColor},
+};
+use crate::grid::{CellCandidate, Grid, Cell};
 
 pub fn find_xywing(grid: &Grid) -> Option<StrategyResult> {
     let bivalue_cells = grid.get_nvalue_cells(2);
@@ -49,17 +52,52 @@ pub fn find_xywing(grid: &Grid) -> Option<StrategyResult> {
             continue;
         }
 
+        let to_eliminate = sees_both
+            .iter()
+            .map(|cell| CellCandidate::from_cell(cell, val))
+            .collect();
+
+        let highlights = make_highlights(ab, bc, ac, &to_eliminate);
+
         return Some(StrategyResult::from(
             "XY-Wing",
             vec![],
-            sees_both
-                .iter()
-                .map(|cell| CellCandidate::from_cell(cell, val))
-                .collect(),
+            to_eliminate,
+            highlights,
         ));
     }
 
     None
+}
+
+fn make_highlights(ab: &Cell, bc: &Cell, ac: &Cell, to_eliminate: &Vec<CellCandidate>) -> Vec<Highlight> {
+    let mut highlights = vec![
+        Highlight::new_cell_hl(
+            ab.get_row(),
+            ab.get_col(),
+            HighlightColor::Orange,
+        ),
+        Highlight::new_cell_hl(
+            bc.get_row(),
+            bc.get_col(),
+            HighlightColor::Yellow,
+        ),
+        Highlight::new_cell_hl(
+            ac.get_row(),
+            ac.get_col(),
+            HighlightColor::Yellow,
+        ),
+    ];
+
+    for cell_candidate in to_eliminate.iter() {
+        highlights.push(Highlight::new_candidate_hl(
+            cell_candidate,
+            HighlightColor::ElimFg,
+            HighlightColor::ElimBg,
+        ));
+    }
+
+    highlights
 }
 
 #[cfg(test)]

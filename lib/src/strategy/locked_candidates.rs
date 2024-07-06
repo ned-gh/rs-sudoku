@@ -1,5 +1,8 @@
-use super::StrategyResult;
-use crate::grid::{CellCandidate, Grid, Unit, UnitType};
+use super::{
+    StrategyResult,
+    highlight::{Highlight, HighlightColor},
+};
+use crate::grid::{CellCandidate, Region, Grid, Unit, UnitType};
 
 pub fn find_locked_candidates(grid: &Grid) -> Option<StrategyResult> {
     for val in 1..10 {
@@ -26,19 +29,46 @@ pub fn find_locked_candidates(grid: &Grid) -> Option<StrategyResult> {
                     continue;
                 }
 
+                let to_eliminate = other
+                    .iter()
+                    .map(|cell| CellCandidate::from_cell(cell, val))
+                    .collect();
+
+                let highlights = make_highlights(&cells, val, &to_eliminate);
+
                 return Some(StrategyResult::from(
                     "Locked Candidates",
                     vec![],
-                    other
-                        .iter()
-                        .map(|cell| CellCandidate::from_cell(cell, val))
-                        .collect(),
+                    to_eliminate,
+                    highlights,
                 ));
             }
         }
     }
 
     None
+}
+
+fn make_highlights(cells: &Region, val: u32, to_eliminate: &Vec<CellCandidate>) -> Vec<Highlight> {
+    let mut highlights = vec![];
+
+    for cell in cells.iter() {
+        highlights.push(Highlight::new_candidate_hl(
+            &CellCandidate::from_cell(cell, val),
+            HighlightColor::NoteFg,
+            HighlightColor::NoteBg,
+        ));
+    }
+
+    for cell_candidate in to_eliminate.iter() {
+        highlights.push(Highlight::new_candidate_hl(
+            cell_candidate,
+            HighlightColor::ElimFg,
+            HighlightColor::ElimBg,
+        ));
+    }
+
+    highlights
 }
 
 #[cfg(test)]

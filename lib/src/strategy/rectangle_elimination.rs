@@ -1,6 +1,9 @@
 use itertools::Itertools;
 
-use super::StrategyResult;
+use super::{
+    StrategyResult,
+    highlight::{Highlight, HighlightColor},
+};
 use crate::grid::{get_minigrid_n_from_coords, Cell, CellCandidate, Grid, Region, UnitType};
 
 use UnitType::{Col, MiniGrid, Row};
@@ -49,17 +52,24 @@ pub fn find_rectangle_elimination(grid: &Grid) -> Option<StrategyResult> {
                     // if the hinge and wing are also strongly linked, then the hinge must contain
                     // val
                     let hinge_wing_unit = grid.get_unit_containing(&opposite, hinge).scan(val);
+
                     if hinge_wing_unit.len() == 2 {
+                        let highlights = make_highlights(hinge, wing, other_wing, val, true);
+
                         return Some(StrategyResult::from(
                             "Rectangle Elimination (two strong links)",
                             vec![CellCandidate::from_cell(hinge, val)],
                             vec![],
+                            highlights,
                         ));
                     } else {
+                        let highlights = make_highlights(hinge, wing, other_wing, val, false);
+
                         return Some(StrategyResult::from(
                             "Rectangle Elimination",
                             vec![],
                             vec![CellCandidate::from_cell(wing, val)],
+                            highlights,
                         ));
                     }
                 }
@@ -122,6 +132,46 @@ fn wings_eliminate_minigrid(
             .get_cells_that_see(wing, true)
             .union(&grid.get_cells_that_see(other_wing, true)),
     )
+}
+
+fn make_highlights(hinge: &Cell, wing: &Cell, other_wing: &Cell, val: u32, place: bool) -> Vec<Highlight> {
+    if place {
+        vec![
+            Highlight::new_candidate_hl(
+                &CellCandidate::from_cell(hinge, val),
+                HighlightColor::NoteFg,
+                HighlightColor::NoteBg,
+            ),
+            Highlight::new_candidate_hl(
+                &CellCandidate::from_cell(wing, val),
+                HighlightColor::ElimFg,
+                HighlightColor::ElimBg,
+            ),
+            Highlight::new_candidate_hl(
+                &CellCandidate::from_cell(other_wing, val),
+                HighlightColor::ElimFg,
+                HighlightColor::ElimBg,
+            ),
+        ]
+    } else {
+        vec![
+            Highlight::new_candidate_hl(
+                &CellCandidate::from_cell(hinge, val),
+                HighlightColor::NoteNegativeFg,
+                HighlightColor::NoteNegativeBg,
+            ),
+            Highlight::new_candidate_hl(
+                &CellCandidate::from_cell(wing, val),
+                HighlightColor::ElimFg,
+                HighlightColor::ElimBg,
+            ),
+            Highlight::new_candidate_hl(
+                &CellCandidate::from_cell(other_wing, val),
+                HighlightColor::NoteFg,
+                HighlightColor::NoteBg,
+            ),
+        ]
+    }
 }
 
 #[cfg(test)]

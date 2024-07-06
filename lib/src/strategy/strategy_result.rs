@@ -1,3 +1,4 @@
+use super::highlight::Highlight;
 use crate::grid::CellCandidate;
 
 #[derive(Debug)]
@@ -5,6 +6,7 @@ pub struct StrategyResult {
     name: String,
     to_place: Vec<CellCandidate>,
     to_eliminate: Vec<CellCandidate>,
+    highlights: Vec<Highlight>,
 }
 
 impl StrategyResult {
@@ -12,11 +14,13 @@ impl StrategyResult {
         name: &str,
         to_place: Vec<CellCandidate>,
         to_eliminate: Vec<CellCandidate>,
+        highlights: Vec<Highlight>,
     ) -> StrategyResult {
         StrategyResult {
             name: name.to_string(),
             to_place,
             to_eliminate,
+            highlights,
         }
     }
 
