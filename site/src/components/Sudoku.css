@@ -1,0 +1,25 @@
+.sudoku {
+  border: 1px solid black;
+
+  width: 27em;
+
+  display: flex;
+  flex-direction: column;
+
+  flex-wrap: wrap;
+}
+
+.row {
+  display: flex;
+
+  width: 27em;
+  height: 3em;
+}
+
+.row:not(:last-child) {
+  border-bottom: 1px solid black;
+}
+
+.row:nth-child(3n+3):not(:last-child) {
+  border-bottom: 2px solid blue;
+}
