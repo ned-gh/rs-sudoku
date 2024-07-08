@@ -1,3 +1,5 @@
 target/
 wasm/pkg
+node_modules/
+dist/
 unsolved.txt
