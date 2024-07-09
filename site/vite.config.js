@@ -6,6 +6,8 @@ import wasm from "vite-plugin-wasm";
 export default defineConfig({
   plugins: [react(), wasm()],
 
+  base: "/rs-sudoku/",
+
   build: {
     target: "esnext",
   },
