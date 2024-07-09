@@ -2,4 +2,5 @@ target/
 wasm/pkg
 node_modules/
 dist/
+.vite/
 unsolved.txt
