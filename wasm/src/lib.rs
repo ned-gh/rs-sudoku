@@ -7,7 +7,12 @@ use lib::{
 
 #[wasm_bindgen]
 pub fn get_grid_from_bd_str(bd: &str) -> JsValue {
-    let grid = Grid::from_str(bd).unwrap();
+    let grid_res = Grid::from_str(bd);
+
+    let grid = match grid_res {
+        Ok(g) => Some(g),
+        Err(_) => None,
+    };
 
     serde_wasm_bindgen::to_value(&grid).unwrap()
 }
