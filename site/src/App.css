@@ -6,6 +6,25 @@
 /* } */
 
 .app {
+  display: inline-block;
+}
+
+.load-container {
+  display: flex;
+
+  margin-bottom: 2px;
+}
+
+.load-container input {
+  flex: 1;
+  min-width: 0;
+}
+
+.load-container button {
+  padding: 0 1em;
+}
+
+.solver-container {
   display: flex;
 
   gap: 2px;

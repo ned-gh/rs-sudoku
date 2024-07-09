@@ -4,7 +4,7 @@ import SolverView from "./components/SolverView";
 import * as wasm from "wasm";
 import "./App.css";
 
-const bd = "000001000040280910001003068003000107080000000600047300008000002095030000000004000";
+const DEFAULT_BD = "908020076000000100070000020005400091300702005460005800040000050006000000210070304";
 
 function colorMap(color) {
   switch (color) {
@@ -33,9 +33,21 @@ function colorMap(color) {
 
 function App() {
   const [gridIdx, setGridIdx] = useState(0);
-  const [gridHistory, setGridHistory] = useState([wasm.get_grid_from_bd_str(bd)]);
+  const [gridHistory, setGridHistory] = useState([wasm.get_grid_from_bd_str(DEFAULT_BD)]);
   const [selected, setSelected] = useState(null);
   const [highlighter, setHighlighter] = useState(null);
+  const [bd, setBd] = useState("");
+
+  function setGridToBd() {
+    const grid = wasm.get_grid_from_bd_str(bd);
+
+    if (grid != undefined) {
+      setGridIdx(0);
+      setGridHistory([grid]);
+      setSelected(null);
+      setHighlighter(null);
+    }
+  }
 
   // highlights: {
   //   CandidateHighlight: {
@@ -132,22 +144,28 @@ function App() {
 
   return (
     <div className="app">
-      <Sudoku
-        gridIdx={gridIdx}
-        setGridIdx={setGridIdx}
-        gridHistory={gridHistory}
-        setGridHistory={gridHistory}
-        selected={selected}
-        setSelected={setSelected}
-        highlighter={highlighter}
-      />
-      <SolverView
-        gridIdx={gridIdx}
-        setGridIdx={setGridIdx}
-        gridHistory={gridHistory}
-        setGridHistory={setGridHistory}
-        setHighlights={setHighlights}
-      />
+      <div className="load-container">
+        <input type="text" value={bd} onChange={(e) => setBd(e.target.value)} />
+        <button onClick={() => setGridToBd()}>Load</button>
+      </div>
+      <div className="solver-container">
+        <Sudoku
+          gridIdx={gridIdx}
+          setGridIdx={setGridIdx}
+          gridHistory={gridHistory}
+          setGridHistory={gridHistory}
+          selected={selected}
+          setSelected={setSelected}
+          highlighter={highlighter}
+        />
+        <SolverView
+          gridIdx={gridIdx}
+          setGridIdx={setGridIdx}
+          gridHistory={gridHistory}
+          setGridHistory={setGridHistory}
+          setHighlights={setHighlights}
+        />
+      </div>
     </div>
   )
 }

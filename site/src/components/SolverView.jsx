@@ -5,6 +5,10 @@ import "./SolverView.css";
 function SolverView({ gridHistory, setGridHistory, gridIdx, setGridIdx, setHighlights }) {
   const [steps, setSteps] = useState([{ name: "Start", idx: 0, highlights: null }]);
 
+  if (steps.length > gridHistory.length + 1) {
+    setSteps([{ name: "Start", idx: 0, highlights: null }]);
+  }
+
   function updateGridHistory(newGrid) {
     const newGridHistory = gridHistory.slice();
     newGridHistory.push(newGrid);
