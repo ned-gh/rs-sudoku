@@ -32,7 +32,7 @@ impl ToString for HighlightColor {
             NoteFg => "black".to_string(),
             NoteBg => "green".to_string(),
             NoteNegativeFg => "black".to_string(),
-            NoteNegativeBg => "green".to_string(),
+            NoteNegativeBg => "magenta".to_string(),
             DefaultLineFg => "grey".to_string(),
             Black => "black".to_string(),
             Red => "red".to_string(),

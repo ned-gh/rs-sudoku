@@ -1,12 +1,14 @@
 import "./Cell.css";
 
-function Cell({ grid, idx, id, selected, highlighter, onClick }) {
+function Cell({ grid, idx, selected, highlighter, onClick }) {
   function hasCandidate(n) {
     return ((grid.candidates[idx] >> n) & 1) == 1;
   };
 
+  const cellBg = highlighter == null ? "" : (highlighter.getCellBg(idx) == null ? "" : highlighter.getCellBg(idx));
+
   return (
-    <div key={id} className="cell" onClick={onClick} style={{backgroundColor: (idx == selected) ? "cyan" : ""}}>
+    <div className="cell" onClick={onClick} style={{backgroundColor: (idx == selected) ? "cyan" : cellBg}}>
       {
         (grid.candidates[idx] != 0) ?
           [1,2,3,4,5,6,7,8,9].map((n) => {

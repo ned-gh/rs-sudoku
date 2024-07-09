@@ -4,7 +4,7 @@ import SolverView from "./components/SolverView";
 import * as wasm from "wasm";
 import "./App.css";
 
-const bd = "300009000000001020056002790003000048000040107009000000000000000080360200500820400";
+const bd = "000001000040280910001003068003000107080000000600047300008000002095030000000004000";
 
 function colorMap(color) {
   switch (color) {
@@ -16,6 +16,16 @@ function colorMap(color) {
       return "#ff7777";
     case "yellow":
       return "#ffff00";
+    case "orange":
+      return "#eeaa55";
+    case "magenta":
+      return "magenta";
+    case "cyan":
+      return "cyan";
+    case "blue":
+      return "#7777ff";
+    case "grey":
+      return "grey";
   }
 
   return null;
@@ -28,12 +38,24 @@ function App() {
   const [highlighter, setHighlighter] = useState(null);
 
   // highlights: {
-  //   candidate_highlight: {
-  //     row, col, val, fg, bg
+  //   CandidateHighlight: {
+  //     cell_candidate: {row, col, val},
+  //     fg,
+  //     bg
   //   },
-  //   cell_highlight: {
-  //     row, col, bg
+  //
+  //   CellHighlight: {
+  //     row,
+  //     col,
+  //     bg
   //   },
+  //
+  //   LineHighlight: {
+  //     start: {row, col, val},
+  //     end: {row, col, val},
+  //     fg,
+  //     dashed,
+  //   }
   // }
 
   function setHighlights(highlights) {
@@ -44,6 +66,7 @@ function App() {
 
     const __highlights = {
       candidateHighlights: {},
+      cellHighlights: {},
     };
     
     for (let i = 0; i < highlights.length; i++) {
@@ -57,6 +80,14 @@ function App() {
         const key = 82 + 9*(9*cc.row + cc.col) + cc.val;
         const value = {fg: fg, bg: bg};
         __highlights.candidateHighlights[key] = value;
+      } else if (hl["CellHighlight"] != undefined) {
+        const row = hl["CellHighlight"].row;
+        const col = hl["CellHighlight"].col;
+        const bg = colorMap(hl["CellHighlight"].bg);
+
+        const key = 9*row + col;
+        const value = {bg: bg};
+        __highlights.cellHighlights[key] = value;
       }
     }
 
@@ -84,7 +115,19 @@ function App() {
       return null;
     };
 
-    setHighlighter({ __highlights, getCandidateFg, getCandidateBg });
+    const getCellBg = (key) => {
+      if (__highlights.cellHighlights == undefined) {
+        return null;
+      }
+
+      if (__highlights.cellHighlights[key] != undefined) {
+        return __highlights.cellHighlights[key].bg;
+      }
+
+      return null;
+    }
+
+    setHighlighter({ __highlights, getCandidateFg, getCandidateBg, getCellBg });
   }
 
   return (
