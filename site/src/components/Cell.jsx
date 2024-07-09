@@ -2,7 +2,7 @@ import "./Cell.css";
 
 function Cell({ grid, idx, id, selected, onClick }) {
   function hasCandidate(n) {
-    return ((grid.candidates[idx] >> n) & 1) == 0;
+    return ((grid.candidates[idx] >> n) & 1) == 1;
   };
 
   return (

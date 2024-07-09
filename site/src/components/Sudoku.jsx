@@ -1,17 +1,8 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import Cell from "./Cell";
 import "./Sudoku.css";
 
-import * as wasm from "wasm";
-
-const bd = "300967001040302080020000070070000090000873000500010003004705100905000207800621004";
-
-function Sudoku() {
-  const [grid, setGrid] = useState(wasm.get_grid_from_bd_str(bd));
-  const [selected, setSelected] = useState(null);
-
-  console.log(grid);
-
+function Sudoku({ gridIdx, setGridIdx, gridHistory, setGridHistory, selected, setSelected }) {
   function useOutsideClick(callback) {
     const ref = useRef();
 
@@ -39,9 +30,9 @@ function Sudoku() {
       const idx = row*9 + c;
       cells.push(
         <Cell
-          grid={grid}
+          grid={gridHistory[gridIdx]}
           idx={idx}
-          id={idx}
+          key={idx}
           selected={selected}
           onClick={() => setSelected(idx)}
         />

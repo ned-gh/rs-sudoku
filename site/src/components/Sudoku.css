@@ -1,7 +1,9 @@
 .sudoku {
+  box-sizing: border-box;
   border: 1px solid black;
 
   width: 27em;
+  height: calc(27em + 12px);
 
   display: flex;
   flex-direction: column;

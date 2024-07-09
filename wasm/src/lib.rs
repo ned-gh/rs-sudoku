@@ -16,7 +16,16 @@ pub fn get_grid_from_bd_str(bd: &str) -> JsValue {
 pub fn solve_step(grid_obj: JsValue) -> JsValue {
     let grid: Grid = serde_wasm_bindgen::from_value(grid_obj).unwrap();
 
-    let solver = Solver::from(grid);
+    let mut solver = Solver::from(grid);
 
-    serde_wasm_bindgen::to_value(&solver.step()).unwrap()
+    let step = solver.step();
+    let new_grid = match &step {
+        Some(res) => {
+            solver.apply(res);
+            Some(solver.get_grid().clone())
+        },
+        None => None,
+    };
+
+    serde_wasm_bindgen::to_value(&(&step, &new_grid)).unwrap()
 }

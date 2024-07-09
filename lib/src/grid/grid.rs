@@ -5,7 +5,7 @@ use std::vec;
 use super::{Cell, CellCandidate, Region, UnitType};
 use crate::util::BitSet;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Grid {
     placed: Vec<u32>,
     candidates: Vec<BitSet>,
