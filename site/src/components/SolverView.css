@@ -1,5 +1,35 @@
 .solver-view {
   box-sizing: border-box;
 
-  border: 1px solid red;
+  width: 10em;
+  height: calc(27em + 12px);
+  overflow-y: auto;
+
+  border: 1px solid black;
+}
+
+.solver-buttons {
+  position: sticky;
+  top: 0;
+
+  background: lightgrey;
+}
+
+.solver-buttons button {
+  padding: 0.5em;
+  width: 100%;
+}
+
+.solver-steps ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.solver-steps li {
+  box-sizing: border-box;
+  padding: 0.2em;
+  border-bottom: 1px solid black;
+
+  cursor: pointer;
 }

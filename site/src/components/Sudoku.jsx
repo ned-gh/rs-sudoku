@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import Cell from "./Cell";
 import "./Sudoku.css";
 
-function Sudoku({ gridIdx, setGridIdx, gridHistory, setGridHistory, selected, setSelected }) {
+function Sudoku({ gridIdx, setGridIdx, gridHistory, setGridHistory, selected, setSelected, highlighter }) {
   function useOutsideClick(callback) {
     const ref = useRef();
 
@@ -34,6 +34,7 @@ function Sudoku({ gridIdx, setGridIdx, gridHistory, setGridHistory, selected, se
           idx={idx}
           key={idx}
           selected={selected}
+          highlighter={highlighter}
           onClick={() => setSelected(idx)}
         />
       );

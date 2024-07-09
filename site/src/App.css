@@ -7,4 +7,6 @@
 
 .app {
   display: flex;
+
+  gap: 2px;
 }
