@@ -2,7 +2,7 @@
   box-sizing: border-box;
 
   width: 10em;
-  height: calc(27em + 12px);
+  height: calc(27em + 2px);
   overflow-y: auto;
 
   border: 1px solid black;

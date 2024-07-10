@@ -1,9 +1,11 @@
 .sudoku {
   box-sizing: border-box;
-  border: 1px solid black;
 
-  width: 27em;
-  height: calc(27em + 12px);
+  border: 1px solid black;
+  padding: 0;
+
+  width: calc(27em + 2px);
+  height: calc(27em + 2px);
 
   display: flex;
   flex-direction: column;
@@ -12,10 +14,11 @@
 }
 
 .row {
-  display: flex;
+  box-sizing: border-box;
 
-  width: 27em;
   height: 3em;
+
+  display: flex;
 }
 
 .row:not(:last-child) {
@@ -24,4 +27,45 @@
 
 .row:nth-child(3n+3):not(:last-child) {
   border-bottom: 2px solid blue;
+}
+
+.cell {
+  box-sizing: border-box;
+
+  width: 2em;
+  height: 2em;
+
+  font-size: 1.5em;
+  font-weight: 400;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-wrap: wrap;
+}
+
+.cell:hover {
+  background: lightgrey;
+}
+
+.cell:not(:last-child) {
+  border-right: 1px solid black;
+}
+
+.cell:nth-child(3n+3):not(:last-child) {
+  border-right: 2px solid blue;
+}
+
+.candidate {
+  width: 33%;
+  height: 33%;
+
+  font-size: 0.45em;
+  font-weight: 400;
+  color: grey;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

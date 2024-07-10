@@ -2,7 +2,7 @@ import { useState } from "react";
 import * as wasm from "wasm";
 import "./SolverView.css";
 
-function SolverView({ gridHistory, setGridHistory, gridIdx, setGridIdx, setHighlights }) {
+function SolverView({ gridHistory, setGridHistory, setGridIdx, setHighlights }) {
   const [steps, setSteps] = useState([{ name: "Start", idx: 0, highlights: null }]);
 
   if (steps.length > gridHistory.length + 1) {
