@@ -1,4 +1,5 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
+import Xarrow from "react-xarrows";
 import "./Sudoku.css";
 
 function Sudoku({ gridIdx, gridHistory, setSelected, highlights }) {
@@ -48,6 +49,7 @@ function Sudoku({ gridIdx, gridHistory, setSelected, highlights }) {
             return (
               <div
               key={candidateId}
+              id={candidateId}
               className="candidate"
               ref={(e) => {
                 if (e) {
@@ -67,6 +69,7 @@ function Sudoku({ gridIdx, gridHistory, setSelected, highlights }) {
         row.push(
           <div
           key={cellId}
+          id={cellId}
           className="cell"
           ref={(e) => {
             if (e) {
@@ -111,6 +114,8 @@ function Sudoku({ gridIdx, gridHistory, setSelected, highlights }) {
   //   }
   // }
 
+  const [arrows, setArrows] = useState([]);
+
   useEffect(() => {
     for (const key in refs.current) {
       refs.current[key].style.color = "";
@@ -120,6 +125,8 @@ function Sudoku({ gridIdx, gridHistory, setSelected, highlights }) {
     if (highlights == null) {
       return;
     }
+
+    const newArrows = [];
 
     for (let i = 0; i < highlights.length; i++) {
       const highlight = highlights[i];
@@ -145,14 +152,50 @@ function Sudoku({ gridIdx, gridHistory, setSelected, highlights }) {
         const bg = colorMap(hl.bg);
 
         refs.current[id].style.backgroundColor = bg;
+      } else if (highlight.LineHighlight != undefined) {
+        const hl = highlight.LineHighlight;
+
+        const start = hl.start;
+        const end = hl.end;
+
+        const startId = getCandidateId(9*start.row + start.col, start.val);
+        const endId = getCandidateId(9*end.row + end.col, end.val);
+
+        const fg = hl.fg;
+        const dashed = hl.dashed;
+
+        newArrows.push([startId, endId, fg, dashed]);
       }
     }
+
+    setArrows(newArrows);
   }, [highlights]);
 
   return (
-    <div className="sudoku" ref={ref}>
-      {getGrid()}
-    </div>
+    <>
+      <div className="sudoku" ref={ref}>
+        {getGrid()}
+      </div>
+      <div className="arrows">
+      {
+        arrows.map((arr) => {
+          return (
+            <Xarrow
+              key={1024+arr[0]*9+arr[1]}
+              start={arr[0].toString()}
+              end={arr[1].toString()}
+              color={arr[2]}
+              dashness={arr[3] ? {strokeLen: 10, nonStrokeLen: 5} : false}
+              strokeWidth={2}
+              headSize={3}
+              path="smooth"
+              curveness={0.5}
+            />
+          );
+        })
+      }
+      </div>
+    </>
   )
 }
 
