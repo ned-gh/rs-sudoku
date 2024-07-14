@@ -66,7 +66,7 @@ impl AICResult {
                 highlights.push(Highlight::new_line_hl(
                     current,
                     next,
-                    HighlightColor::DefaultLineFg,
+                    HighlightColor::Red,
                     (i % 2) == 1,
                 ));
             }
@@ -320,7 +320,7 @@ fn make_highlights(aic_result: &AICResult) -> Vec<Highlight> {
                     highlights.push(Highlight::new_line_hl(
                         end,
                         disc,
-                        HighlightColor::DefaultLineFg,
+                        HighlightColor::Red,
                         true,
                     ));
                 }
@@ -330,7 +330,7 @@ fn make_highlights(aic_result: &AICResult) -> Vec<Highlight> {
                     highlights.push(Highlight::new_line_hl(
                         disc,
                         start,
-                        HighlightColor::DefaultLineFg,
+                        HighlightColor::Red,
                         false,
                     ));
                 }
@@ -344,7 +344,7 @@ fn make_highlights(aic_result: &AICResult) -> Vec<Highlight> {
                         highlights.push(Highlight::new_line_hl(
                             end,
                             disc,
-                            HighlightColor::DefaultLineFg,
+                            HighlightColor::Red,
                             true,
                         ));
                     }
@@ -353,7 +353,7 @@ fn make_highlights(aic_result: &AICResult) -> Vec<Highlight> {
                         highlights.push(Highlight::new_line_hl(
                             disc,
                             start,
-                            HighlightColor::DefaultLineFg,
+                            HighlightColor::Red,
                             true,
                         ));
                     }
