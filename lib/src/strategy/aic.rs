@@ -11,29 +11,27 @@ use LinkType::{StrongInCell, StrongInUnit, WeakInCell, WeakInUnit};
 
 pub type AIC = Vec<LinkNode>;
 
+pub enum DiscontinuousType {
+    Weak(Vec<LinkNode>),
+    Strong(LinkNode),
+}
+
 pub enum AICType {
     Continuous,
-    Discontinuous,
+    Discontinuous(DiscontinuousType),
 }
 
 pub struct AICResult {
     aic: AIC,
     aic_type: AICType,
-    to_place: Vec<CellCandidate>,
     to_eliminate: Vec<CellCandidate>,
 }
 
 impl AICResult {
-    pub fn from(
-        aic: &AIC,
-        aic_type: AICType,
-        to_place: Vec<CellCandidate>,
-        to_eliminate: Vec<CellCandidate>,
-    ) -> AICResult {
+    pub fn from(aic: &AIC, aic_type: AICType, to_eliminate: Vec<CellCandidate>) -> AICResult {
         AICResult {
             aic: aic.clone(),
             aic_type,
-            to_place,
             to_eliminate,
         }
     }
@@ -46,20 +44,8 @@ impl AICResult {
         &self.aic_type
     }
 
-    pub fn get_to_place(&self) -> &Vec<CellCandidate> {
-        &self.to_place
-    }
-
-    pub fn get_to_place_owned(self) -> Vec<CellCandidate> {
-        self.to_place
-    }
-
     pub fn get_to_eliminate(&self) -> &Vec<CellCandidate> {
         &self.to_eliminate
-    }
-
-    pub fn get_to_eliminate_owned(self) -> Vec<CellCandidate> {
-        self.to_eliminate
     }
 
     pub fn make_highlights(&self, alternate_color: bool, make_lines: bool) -> Vec<Highlight> {
@@ -74,7 +60,7 @@ impl AICResult {
             let next = &aic[next_idx].get()[0];
 
             let line_exists =
-                !(matches!(self.aic_type, AICType::Discontinuous) && i == aic.len() - 1);
+                !(matches!(self.aic_type, AICType::Discontinuous(_)) && i == aic.len() - 1);
 
             if make_lines && line_exists && !current.same_cell(next) {
                 highlights.push(Highlight::new_line_hl(
@@ -117,54 +103,28 @@ pub fn find_general_aic(grid: &Grid) -> Option<StrategyResult> {
     let weak_link_map = make_link_map(grid, &[StrongInCell, StrongInUnit, WeakInCell, WeakInUnit]);
 
     if let Some(aic_result) = build_aics(&strong_link_map, &weak_link_map, 12) {
-        let highlights = make_highlights(grid, &aic_result);
+        let highlights = make_highlights(&aic_result);
 
         match aic_result.get_aic_type() {
             AICType::Continuous => {
                 return Some(StrategyResult::from(
                     "Continuous AIC loop",
                     vec![],
-                    aic_result.get_to_eliminate_owned(),
+                    aic_result.get_to_eliminate().clone(),
                     highlights,
                 ));
             }
 
-            AICType::Discontinuous => {
-                if !aic_result.get_to_place().is_empty() {
-                    return Some(StrategyResult::from(
-                        "Discontinuous Nice Loop",
-                        aic_result.get_to_place_owned(),
-                        vec![],
-                        highlights,
-                    ));
-                }
-
-                let name = if aic_result.get_to_eliminate().len() == 1 {
-                    "Discontinuous Nice Loop"
-                } else {
-                    let start = &aic_result.get_aic().first().unwrap().get()[0];
-                    let end = &aic_result.get_aic().first().unwrap().get()[0];
-
-                    let mut is_type2 = true;
-
-                    for cell_candidate in aic_result.get_to_eliminate().iter() {
-                        if !(cell_candidate.same_cell(start) || cell_candidate.same_cell(end)) {
-                            is_type2 = false;
-                            break;
-                        }
-                    }
-
-                    if is_type2 {
-                        "AIC Type 2"
-                    } else {
-                        "AIC Type 1"
-                    }
+            AICType::Discontinuous(disc_type) => {
+                let name = match disc_type {
+                    DiscontinuousType::Weak(_) => "Discontinuous AIC Loop",
+                    DiscontinuousType::Strong(_) => "Discontinuous AIC Loop (strong link)",
                 };
 
                 return Some(StrategyResult::from(
                     name,
                     vec![],
-                    aic_result.get_to_eliminate_owned(),
+                    aic_result.get_to_eliminate().clone(),
                     highlights,
                 ));
             }
@@ -272,12 +232,7 @@ fn check_continuous(aic: &AIC, weak_link_map: &LinkMap) -> Option<AICResult> {
         return None;
     }
 
-    Some(AICResult::from(
-        aic,
-        AICType::Continuous,
-        vec![],
-        to_eliminate,
-    ))
+    Some(AICResult::from(aic, AICType::Continuous, to_eliminate))
 }
 
 fn check_discontinuous(
@@ -298,6 +253,8 @@ fn check_discontinuous(
         .intersection(weak_link_map.get(end).unwrap());
 
     let mut to_eliminate = vec![];
+    let mut discontinuities = vec![];
+    let mut is_strong = false;
 
     for discontinuity in linked_to_both {
         if strong_link_map.get(start).unwrap().contains(discontinuity) {
@@ -309,27 +266,37 @@ fn check_discontinuous(
                 }
             }
 
+            is_strong = true;
+            discontinuities = vec![discontinuity.clone()];
+
             break;
         } else {
             for cell_candidate in discontinuity.get().iter() {
                 to_eliminate.push(cell_candidate.clone());
             }
+
+            discontinuities.push(discontinuity.clone());
         }
     }
+
+    let disc_type = if is_strong {
+        DiscontinuousType::Strong(discontinuities[0].clone())
+    } else {
+        DiscontinuousType::Weak(discontinuities)
+    };
 
     if to_eliminate.is_empty() {
         None
     } else {
         Some(AICResult::from(
             aic,
-            AICType::Discontinuous,
-            vec![],
+            AICType::Discontinuous(disc_type),
             to_eliminate,
         ))
     }
 }
 
-fn make_highlights(grid: &Grid, aic_result: &AICResult) -> Vec<Highlight> {
+fn make_highlights(aic_result: &AICResult) -> Vec<Highlight> {
     let mut highlights = aic_result.make_highlights(true, true);
 
     for cell_candidate in aic_result.get_to_eliminate().iter() {
@@ -340,21 +307,60 @@ fn make_highlights(grid: &Grid, aic_result: &AICResult) -> Vec<Highlight> {
         ));
     }
 
-    for cell_candidate in aic_result.get_to_place().iter() {
-        let (r, c, val) = cell_candidate.as_tuple();
+    if let AICType::Discontinuous(disc_type) = aic_result.get_aic_type() {
+        let start = &aic_result.get_aic().first().unwrap().get()[0];
+        let end = &aic_result.get_aic().last().unwrap().get()[0];
 
-        for elim_val in grid.get_candidates(r, c).iter() {
-            if elim_val == val {
-                continue;
+        match disc_type {
+            DiscontinuousType::Strong(link_node) => {
+                let disc = &link_node.get()[0];
+
+                if !disc.same_cell(end) {
+                    // weak link from end to discontinuity
+                    highlights.push(Highlight::new_line_hl(
+                        end,
+                        disc,
+                        HighlightColor::DefaultLineFg,
+                        true,
+                    ));
+                }
+
+                if !disc.same_cell(start) {
+                    // strong link from discontinuity to start
+                    highlights.push(Highlight::new_line_hl(
+                        disc,
+                        start,
+                        HighlightColor::DefaultLineFg,
+                        false,
+                    ));
+                }
             }
+            DiscontinuousType::Weak(link_nodes) => {
+                // weak links from end -> discontinuity -> start
+                for link_node in link_nodes.iter() {
+                    let disc = &link_node.get()[0];
 
-            highlights.push(Highlight::new_candidate_hl(
-                &CellCandidate::from(r, c, elim_val),
-                HighlightColor::ElimFg,
-                HighlightColor::ElimBg,
-            ));
-        }
-    }
+                    if !disc.same_cell(end) {
+                        highlights.push(Highlight::new_line_hl(
+                            end,
+                            disc,
+                            HighlightColor::DefaultLineFg,
+                            true,
+                        ));
+                    }
+
+                    if !disc.same_cell(start) {
+                        highlights.push(Highlight::new_line_hl(
+                            disc,
+                            start,
+                            HighlightColor::DefaultLineFg,
+                            true,
+                        ));
+                    }
+                }
+            }
+        };
+    };
 
     highlights
 }

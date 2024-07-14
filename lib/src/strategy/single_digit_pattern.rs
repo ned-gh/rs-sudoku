@@ -34,14 +34,14 @@ pub fn find_single_digit_pattern(grid: &Grid) -> Option<StrategyResult> {
     if let Some(aic_result) = build_aics(&strong_link_map, &weak_link_map, 4) {
         let pattern_type = match aic_result.get_aic_type() {
             AICType::Continuous => TurbotFish,
-            AICType::Discontinuous => get_pattern_type(grid, aic_result.get_aic()),
+            AICType::Discontinuous(_) => get_pattern_type(grid, aic_result.get_aic()),
         };
 
-        let highlights = make_higlights(grid, &pattern_type, &aic_result);
+        let highlights = make_highlights(&pattern_type, &aic_result);
 
         return Some(StrategyResult::from(
             pattern_type.to_str(),
-            aic_result.get_to_place().clone(),
+            vec![],
             aic_result.get_to_eliminate().clone(),
             highlights,
         ));
@@ -87,11 +87,7 @@ fn get_pattern_type(grid: &Grid, aic: &AIC) -> PatternType {
     }
 }
 
-fn make_higlights(
-    grid: &Grid,
-    pattern_type: &PatternType,
-    aic_result: &AICResult,
-) -> Vec<Highlight> {
+fn make_highlights(pattern_type: &PatternType, aic_result: &AICResult) -> Vec<Highlight> {
     let mut highlights = match pattern_type {
         TurbotFish => aic_result.make_highlights(true, true),
         _ => aic_result.make_highlights(false, false),
@@ -103,22 +99,6 @@ fn make_higlights(
             HighlightColor::ElimFg,
             HighlightColor::ElimBg,
         ));
-    }
-
-    for cell_candidate in aic_result.get_to_place().iter() {
-        let (r, c, val) = cell_candidate.as_tuple();
-
-        for elim_val in grid.get_candidates(r, c).iter() {
-            if elim_val == val {
-                continue;
-            }
-
-            highlights.push(Highlight::new_candidate_hl(
-                &CellCandidate::from(r, c, elim_val),
-                HighlightColor::ElimFg,
-                HighlightColor::ElimBg,
-            ));
-        }
     }
 
     highlights
