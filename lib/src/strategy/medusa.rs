@@ -4,7 +4,7 @@ use std::collections::{HashMap, HashSet};
 
 use super::{
     highlight::{Highlight, HighlightColor},
-    link::{make_link_map, LinkMap, LinkType},
+    link::{make_link_map, LinkMap, LinkNode, LinkType},
     StrategyResult,
 };
 use crate::grid::{get_minigrid_n_from_coords, CellCandidate, Grid};
@@ -75,7 +75,7 @@ pub fn find_medusa(grid: &Grid) -> Option<StrategyResult> {
     None
 }
 
-fn get_component_starts(strong_link_map: &LinkMap) -> Vec<CellCandidate> {
+fn get_component_starts(strong_link_map: &LinkMap) -> Vec<LinkNode> {
     let mut component_starts = vec![];
 
     let mut visited = HashSet::new();
@@ -84,9 +84,9 @@ fn get_component_starts(strong_link_map: &LinkMap) -> Vec<CellCandidate> {
         let mut start = None;
         let mut to_visit = vec![];
 
-        for cell_candidate in strong_link_map.keys() {
-            if !visited.contains(cell_candidate) {
-                to_visit.push(cell_candidate.clone());
+        for link_node in strong_link_map.keys() {
+            if !visited.contains(link_node) {
+                to_visit.push(link_node.clone());
                 break;
             }
         }
@@ -105,21 +105,23 @@ fn get_component_starts(strong_link_map: &LinkMap) -> Vec<CellCandidate> {
             }
         }
 
-        if let Some(cell_candidate) = start {
-            component_starts.push(cell_candidate);
+        if let Some(link_node) = start {
+            component_starts.push(link_node);
         }
     }
 
     component_starts
 }
 
-fn color_component(start: &CellCandidate, strong_link_map: &LinkMap) -> (ColorMap, CellColorMap) {
+fn color_component(start: &LinkNode, strong_link_map: &LinkMap) -> (ColorMap, CellColorMap) {
     let mut color_map = ColorMap::new();
     let mut cell_color_map = CellColorMap::new();
 
-    color_map.insert(start.clone(), ColorA);
+    let start_cc = start.get_singleton();
 
-    let (r, c, val) = start.as_tuple();
+    color_map.insert(start_cc.clone(), ColorA);
+
+    let (r, c, val) = start_cc.as_tuple();
     cell_color_map.insert((r, c), HashMap::new());
     cell_color_map.get_mut(&(r, c)).unwrap().insert(val, ColorA);
 
@@ -128,12 +130,14 @@ fn color_component(start: &CellCandidate, strong_link_map: &LinkMap) -> (ColorMa
 
     while let Some(current) = to_visit.pop() {
         if !visited.contains(&current) {
-            let next_color = color_map.get(&current).unwrap().opposite();
+            let current_cc = current.get_singleton();
+            let next_color = color_map.get(current_cc).unwrap().opposite();
 
             for next in strong_link_map.get(&current).unwrap().iter() {
-                color_map.insert(next.clone(), next_color);
+                let next_cc = next.get_singleton();
+                color_map.insert(next_cc.clone(), next_color);
 
-                let (nr, nc, nval) = next.as_tuple();
+                let (nr, nc, nval) = next_cc.as_tuple();
 
                 cell_color_map.entry((nr, nc)).or_insert_with(HashMap::new);
 
@@ -384,7 +388,7 @@ fn cell_emptied_by_color(
         colored_cells.insert((r, c));
     }
 
-    for cell in grid.iter() {
+    for cell in grid.as_region().iter() {
         let (r, c) = (cell.get_row(), cell.get_col());
 
         if colored_cells.contains(&(r, c)) {
@@ -490,7 +494,7 @@ fn make_highlights(
 mod tests {
     use super::*;
 
-    fn setup(grid: &Grid) -> (LinkMap, Vec<CellCandidate>) {
+    fn setup(grid: &Grid) -> (LinkMap, Vec<LinkNode>) {
         let strong_link_map = make_link_map(grid, &[StrongInUnit, StrongInCell]);
         let component_starts = get_component_starts(&strong_link_map);
 

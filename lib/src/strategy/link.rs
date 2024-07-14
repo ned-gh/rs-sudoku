@@ -1,10 +1,8 @@
 use std::collections::{HashMap, HashSet};
 
-use crate::grid::{Cell, CellCandidate, Grid, UnitType};
+use crate::grid::{CellCandidate, Grid, UnitType};
 
 use UnitType::{Col, MiniGrid, Row};
-
-pub type LinkMap = HashMap<CellCandidate, HashSet<CellCandidate>>;
 
 pub enum LinkType {
     StrongInCell,
@@ -12,6 +10,46 @@ pub enum LinkType {
     WeakInCell,
     WeakInUnit,
 }
+
+#[derive(Eq, PartialEq, Hash, Clone)]
+pub struct LinkNode {
+    cell_candidates: Vec<CellCandidate>,
+}
+
+impl LinkNode {
+    fn from(cell_candidate: CellCandidate) -> LinkNode {
+        LinkNode {
+            cell_candidates: vec![cell_candidate],
+        }
+    }
+
+    fn from_multi(cell_candidates: &[CellCandidate]) -> LinkNode {
+        LinkNode {
+            cell_candidates: cell_candidates.to_vec(),
+        }
+    }
+
+    pub fn get(&self) -> &Vec<CellCandidate> {
+        &self.cell_candidates
+    }
+
+    pub fn same_cell(&self, other: &LinkNode) -> bool {
+        if self.cell_candidates.len() > 1 || other.cell_candidates.len() > 1 {
+            return false;
+        }
+
+        let (self_r, self_c, _) = self.cell_candidates[0].as_tuple();
+        let (other_r, other_c, _) = other.cell_candidates[0].as_tuple();
+
+        self_r == other_r && self_c == other_c
+    }
+
+    pub fn get_singleton(&self) -> &CellCandidate {
+        &self.cell_candidates[0]
+    }
+}
+
+pub type LinkMap = HashMap<LinkNode, HashSet<LinkNode>>;
 
 use LinkType::*;
 
@@ -47,10 +85,10 @@ fn make_from_link(grid: &Grid, link_type: &LinkType) -> LinkMap {
 fn make_in_cells(grid: &Grid, only_strong_links: bool) -> LinkMap {
     let mut map = LinkMap::new();
 
-    let cells: Vec<Cell> = if only_strong_links {
-        grid.get_nvalue_cells(2).iter().cloned().collect()
+    let cells = if only_strong_links {
+        grid.get_nvalue_cells(2)
     } else {
-        grid.iter().collect()
+        grid.as_region()
     };
 
     for cell in cells.iter() {
@@ -62,14 +100,10 @@ fn make_in_cells(grid: &Grid, only_strong_links: bool) -> LinkMap {
                     continue;
                 }
 
-                let cell_a = CellCandidate::from_cell(cell, a);
-                let cell_b = CellCandidate::from_cell(cell, b);
+                let node_a = LinkNode::from(CellCandidate::from_cell(cell, a));
+                let node_b = LinkNode::from(CellCandidate::from_cell(cell, b));
 
-                if !map.contains_key(&cell_a) {
-                    map.insert(cell_a.clone(), HashSet::new());
-                };
-
-                map.get_mut(&cell_a).unwrap().insert(cell_b);
+                map.entry(node_a).or_default().insert(node_b);
             }
         }
     }
@@ -97,14 +131,10 @@ fn make_in_units(grid: &Grid, only_strong_links: bool) -> LinkMap {
                             continue;
                         }
 
-                        let cell_a = CellCandidate::from_cell(a, val);
-                        let cell_b = CellCandidate::from_cell(b, val);
+                        let node_a = LinkNode::from(CellCandidate::from_cell(a, val));
+                        let node_b = LinkNode::from(CellCandidate::from_cell(b, val));
 
-                        if !map.contains_key(&cell_a) {
-                            map.insert(cell_a.clone(), HashSet::new());
-                        };
-
-                        map.get_mut(&cell_a).unwrap().insert(cell_b);
+                        map.entry(node_a).or_default().insert(node_b);
                     }
                 }
             }

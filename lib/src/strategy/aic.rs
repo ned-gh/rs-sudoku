@@ -2,14 +2,14 @@ use std::collections::VecDeque;
 
 use super::{
     highlight::{Highlight, HighlightColor},
-    link::{make_link_map, LinkMap, LinkType},
+    link::{make_link_map, LinkMap, LinkNode, LinkType},
     StrategyResult,
 };
 use crate::grid::{CellCandidate, Grid};
 
 use LinkType::{StrongInCell, StrongInUnit, WeakInCell, WeakInUnit};
 
-pub type AIC = Vec<CellCandidate>;
+pub type AIC = Vec<LinkNode>;
 
 pub enum AICType {
     Continuous,
@@ -70,10 +70,13 @@ impl AICResult {
         for i in 0..aic.len() {
             let next_idx = if i < aic.len() - 1 { i + 1 } else { 0 };
 
-            let current = &aic[i];
-            let next = &aic[next_idx];
+            let current = &aic[i].get()[0];
+            let next = &aic[next_idx].get()[0];
 
-            if make_lines && !current.same_cell(next) {
+            let line_exists =
+                !(matches!(self.aic_type, AICType::Discontinuous) && i == aic.len() - 1);
+
+            if make_lines && line_exists && !current.same_cell(next) {
                 highlights.push(Highlight::new_line_hl(
                     current,
                     next,
@@ -139,8 +142,8 @@ pub fn find_general_aic(grid: &Grid) -> Option<StrategyResult> {
                 let name = if aic_result.get_to_eliminate().len() == 1 {
                     "Discontinuous Nice Loop"
                 } else {
-                    let start = aic_result.get_aic().first().unwrap();
-                    let end = aic_result.get_aic().first().unwrap();
+                    let start = &aic_result.get_aic().first().unwrap().get()[0];
+                    let end = &aic_result.get_aic().first().unwrap().get()[0];
 
                     let mut is_type2 = true;
 
@@ -258,8 +261,10 @@ fn check_continuous(aic: &AIC, weak_link_map: &LinkMap) -> Option<AICResult> {
             .unwrap()
             .intersection(weak_link_map.get(next).unwrap());
 
-        for cell_candidate in linked_to_both {
-            to_eliminate.push(cell_candidate.clone());
+        for link_node in linked_to_both {
+            for cell_candidate in link_node.get().iter() {
+                to_eliminate.push(cell_candidate.clone());
+            }
         }
     }
 
@@ -283,10 +288,7 @@ fn check_discontinuous(
     let start = aic.first().unwrap();
     let end = aic.last().unwrap();
 
-    let (start_r, start_c, _) = start.as_tuple();
-    let (end_r, end_c, _) = end.as_tuple();
-
-    if (start_r, start_c) == (end_r, end_c) {
+    if start.same_cell(end) {
         return None;
     }
 
@@ -299,14 +301,19 @@ fn check_discontinuous(
 
     for discontinuity in linked_to_both {
         if strong_link_map.get(start).unwrap().contains(discontinuity) {
-            return Some(AICResult::from(
-                aic,
-                AICType::Discontinuous,
-                vec![start.clone()],
-                vec![],
-            ));
+            to_eliminate = vec![];
+
+            for link_node in weak_link_map.get(start).unwrap().iter() {
+                for cell_candidate in link_node.get().iter() {
+                    to_eliminate.push(cell_candidate.clone());
+                }
+            }
+
+            break;
         } else {
-            to_eliminate.push(discontinuity.clone());
+            for cell_candidate in discontinuity.get().iter() {
+                to_eliminate.push(cell_candidate.clone());
+            }
         }
     }
 

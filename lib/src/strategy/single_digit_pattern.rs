@@ -51,9 +51,22 @@ pub fn find_single_digit_pattern(grid: &Grid) -> Option<StrategyResult> {
 }
 
 fn get_pattern_type(grid: &Grid, aic: &AIC) -> PatternType {
-    let first = Region::from_candidates(grid, &aic[0..=1]);
-    let middle = Region::from_candidates(grid, &aic[1..=2]);
-    let last = Region::from_candidates(grid, &aic[2..=3]);
+    let first_cc: Vec<CellCandidate> = aic[0..=1]
+        .iter()
+        .map(|ln| ln.get_singleton().clone())
+        .collect();
+    let middle_cc: Vec<CellCandidate> = aic[1..=2]
+        .iter()
+        .map(|ln| ln.get_singleton().clone())
+        .collect();
+    let last_cc: Vec<CellCandidate> = aic[2..=3]
+        .iter()
+        .map(|ln| ln.get_singleton().clone())
+        .collect();
+
+    let first = Region::from_candidates(grid, &first_cc);
+    let middle = Region::from_candidates(grid, &middle_cc);
+    let last = Region::from_candidates(grid, &last_cc);
 
     match (first.all_in_line(), last.all_in_line()) {
         (Some(Row(_)), Some(Row(_))) | (Some(Col(_)), Some(Col(_))) => {

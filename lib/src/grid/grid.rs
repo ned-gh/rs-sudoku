@@ -271,18 +271,20 @@ impl Grid {
         cells
     }
 
-    pub fn iter(&self) -> vec::IntoIter<Cell> {
-        let mut cells = vec![];
+    pub fn as_region(&self) -> Region {
+        let mut region = Region::new();
 
-        for (i, cands) in self.candidates.iter().enumerate() {
-            if cands.is_empty() {
-                continue;
+        for r in 0..9 {
+            for c in 0..9 {
+                let idx = index(r, c);
+
+                if self.placed[idx] == 0 {
+                    region.insert(Cell::from(r, c, &self.candidates[idx]));
+                }
             }
-
-            cells.push(Cell::from((i as u32) / 9, (i as u32) % 9, cands));
         }
 
-        cells.into_iter()
+        region
     }
 }
 
