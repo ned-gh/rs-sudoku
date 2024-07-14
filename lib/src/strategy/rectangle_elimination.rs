@@ -45,16 +45,23 @@ pub fn find_rectangle_elimination(grid: &Grid) -> Option<StrategyResult> {
                         (cell2, cell1)
                     };
 
-                    if !wings_eliminate_minigrid(grid, wing, other_wing, val, &opposite) {
-                        continue;
-                    }
+                    let target_cells =
+                        match wings_eliminate_minigrid(grid, wing, other_wing, val, &opposite) {
+                            Some(region) => region,
+                            None => continue,
+                        };
+
+                    // if target_cells.is_none() {
+                    //     continue;
+                    // }
 
                     // if the hinge and wing are also strongly linked, then the hinge must contain
                     // val
                     let hinge_wing_unit = grid.get_unit_containing(&opposite, hinge).scan(val);
 
                     if hinge_wing_unit.len() == 2 {
-                        let highlights = make_highlights(hinge, wing, other_wing, val, true);
+                        let highlights =
+                            make_highlights(&target_cells, hinge, wing, other_wing, val, true);
 
                         return Some(StrategyResult::from(
                             "Rectangle Elimination (two strong links)",
@@ -63,7 +70,8 @@ pub fn find_rectangle_elimination(grid: &Grid) -> Option<StrategyResult> {
                             highlights,
                         ));
                     } else {
-                        let highlights = make_highlights(hinge, wing, other_wing, val, false);
+                        let highlights =
+                            make_highlights(&target_cells, hinge, wing, other_wing, val, false);
 
                         return Some(StrategyResult::from(
                             "Rectangle Elimination",
@@ -114,7 +122,7 @@ fn wings_eliminate_minigrid(
     other_wing: &Cell,
     val: u32,
     opposite: &UnitType,
-) -> bool {
+) -> Option<Region> {
     let target_minigrid = match opposite {
         Row => get_minigrid_n_from_coords(other_wing.get_row(), wing.get_col()),
         Col => get_minigrid_n_from_coords(wing.get_row(), other_wing.get_col()),
@@ -124,24 +132,31 @@ fn wings_eliminate_minigrid(
     let target_cells = grid.get_unit(&MiniGrid, target_minigrid).scan(val);
 
     if target_cells.is_empty() {
-        return false;
+        return None;
     }
 
-    target_cells.is_subset(
+    let elims_all = target_cells.is_subset(
         &grid
             .get_cells_that_see(wing, true)
             .union(&grid.get_cells_that_see(other_wing, true)),
-    )
+    );
+
+    if elims_all {
+        Some(target_cells)
+    } else {
+        None
+    }
 }
 
 fn make_highlights(
+    target_cells: &Region,
     hinge: &Cell,
     wing: &Cell,
     other_wing: &Cell,
     val: u32,
     place: bool,
 ) -> Vec<Highlight> {
-    if place {
+    let mut highlights = if place {
         vec![
             Highlight::new_candidate_hl(
                 &CellCandidate::from_cell(hinge, val),
@@ -177,7 +192,17 @@ fn make_highlights(
                 HighlightColor::NoteBg,
             ),
         ]
+    };
+
+    for cell in target_cells.iter() {
+        highlights.push(Highlight::new_candidate_hl(
+            &CellCandidate::from_cell(cell, val),
+            HighlightColor::NoteNegativeFg,
+            HighlightColor::NoteNegativeBg,
+        ));
     }
+
+    highlights
 }
 
 #[cfg(test)]

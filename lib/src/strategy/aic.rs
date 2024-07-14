@@ -75,12 +75,12 @@ impl AICResult {
                 highlights.push(Highlight::new_candidate_hl(
                     current,
                     if alternate_color {
-                        HighlightColor::NoteNegativeFg
+                        HighlightColor::NoteSecondaryFg
                     } else {
                         HighlightColor::NoteFg
                     },
                     if alternate_color {
-                        HighlightColor::NoteNegativeBg
+                        HighlightColor::NoteSecondaryBg
                     } else {
                         HighlightColor::NoteBg
                     },

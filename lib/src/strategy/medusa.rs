@@ -460,8 +460,8 @@ fn make_highlights(
         None => (
             (HighlightColor::NoteFg, HighlightColor::NoteBg),
             (
-                HighlightColor::NoteNegativeFg,
-                HighlightColor::NoteNegativeBg,
+                HighlightColor::NoteSecondaryFg,
+                HighlightColor::NoteSecondaryBg,
             ),
         ),
     };

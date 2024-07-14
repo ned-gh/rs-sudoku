@@ -9,6 +9,8 @@ pub enum HighlightColor {
     ElimBg,
     NoteFg,
     NoteBg,
+    NoteSecondaryFg,
+    NoteSecondaryBg,
     NoteNegativeFg,
     NoteNegativeBg,
     DefaultLineFg,
@@ -27,10 +29,12 @@ use HighlightColor::*;
 impl ToString for HighlightColor {
     fn to_string(&self) -> String {
         match self {
-            ElimFg => "red".to_string(),
-            ElimBg => "yellow".to_string(),
+            ElimFg => "black".to_string(),
+            ElimBg => "red".to_string(),
             NoteFg => "black".to_string(),
             NoteBg => "green".to_string(),
+            NoteSecondaryFg => "black".to_string(),
+            NoteSecondaryBg => "blue".to_string(),
             NoteNegativeFg => "black".to_string(),
             NoteNegativeBg => "magenta".to_string(),
             DefaultLineFg => "grey".to_string(),
